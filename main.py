@@ -34,12 +34,12 @@ class Board:
         print('┌' + '─'*self.width + '┐')
 
         # Middle of the board
-        for row in range(len(self.state), -1, -1):
+        for row in range(self.height-1, -1, -1):
             # Left edge of the board
             print('│', end='')
-            for col in self.state[row]:
+            for col in range(self.width):
                 # Print the state of the cell
-                print(self.state[row][col])
+                print(self.cell_at(row, col), end='')
 
             # Right edge of the board
             print('│')
