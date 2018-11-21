@@ -68,10 +68,15 @@ class Cell:
 
         return self.state
 
-    def toggle_state(self):
-        """Toggle the aliveness of the given cell."""
+    def live(self):
+        """Make the given cell alive."""
 
-        self.state = not self.state
+        self.state = True
+
+    def die(self):
+        """Make the given cell dead."""
+
+        self.state = False
 
     def num_alive_neighbors(self, x, y):
         """Return number of alive neighbors of the given cell."""
