@@ -1,5 +1,5 @@
 from typing import List
-import pygame
+# import pygame
 
 
 class Board:
@@ -86,7 +86,7 @@ class Cell:
     alive_char = 'O'
     dead_char = ' '
 
-    def __init__(self, state: bool, row, col, board: object):
+    def __init__(self, state: bool, row, col, board: Board):
         """Create a cell object."""
 
         self.state = state
@@ -246,29 +246,33 @@ class Cell:
 
 
 def game_loop():
-    # Set up window data
-    pygame.init()
-    win = pygame.display.set_mode((500, 500))
-    pygame.display.set_caption('Game of Life')
-    millis_per_tick = 100
-
-    # Main game loop
-    run = True
-    while run:
-        pygame.time.delay(millis_per_tick)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-
-        pygame.draw.rect(win, (50, 60, 60), )
-    pygame.quit()
+    # # Set up window data
+    # pygame.init()
+    # win = pygame.display.set_mode((500, 500))
+    # pygame.display.set_caption('Game of Life')
+    # millis_per_tick = 100
+    #
+    # # Main game loop
+    # run = True
+    # while run:
+    #     pygame.time.delay(millis_per_tick)
+    #
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT:
+    #             run = False
+    #
+    #     pygame.draw.rect(win, (50, 60, 60), )
+    # pygame.quit()
+    pass
 
 
 def main():
-    board = Board(0, width=5, height=10)
-    print(board)
-    print('test:', len(board.state))
+    board = Board(0, 10, 10)
+    board.render_board()
+    board.cell_at(2, 3).live()
+    board.render_board()
+    board.tick_board()
+    board.render_board()
 
 
 if __name__ == '__main__':
