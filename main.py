@@ -53,7 +53,7 @@ class Board:
                 cell = self.state[row][col]
 
                 # Update the state of the cell in new_board
-                if cell.next_state():
+                if cell.should_live():
                     new_state.state[row][col].live()
                 else:
                     new_state.state[row][col].die()
@@ -195,7 +195,7 @@ class Cell:
 
         return neighbors
 
-    def next_state(self) -> bool:
+    def should_live(self) -> bool:
         """Determine if cell should be alive next game tick."""
 
         # Get number of adjacent living cells
