@@ -1,3 +1,4 @@
+import re
 from typing import List
 # import pygame
 
@@ -26,6 +27,58 @@ class Board:
             s += '\n\t\t{}'.format(row)
 
         return s
+
+    def set_board_states(self):
+        """Prompt user to set alive cells in board."""
+
+        commands = {'live': 'turn on cells in the board',
+                    'die': 'turn off cells in the board',
+                    'end': 'done setting up board',
+                    'help': 'list available commands'}
+
+        cont = True
+        while cont:
+            cmd = input('\nEnter a command or type help for help:\n>>> ').lower()
+
+            if cmd in ['live', 'die']:
+                coords = input('Enter cells to {} as (x,y) coordinates separated by spaces:'
+                               '\n>>> '.format(cmd))
+
+                # Make each entered cell alive
+                for tuple_str in coords.split():
+                    [col, row] = [num for num in tuple_str[1:len(tuple_str)-1].split(',')]
+                    print('test col, row: {}, {}'.format(col, row))
+                    try:
+                        # Ensure col, row are integers
+                        col = int(col)
+                        row = int(row)
+                    except ValueError:
+                        # Cells are non-integers
+                        print('\tCell ({},{}) invalid: coordinates must be integers.'
+                              ''.format(col, row))
+                    else:
+                        if not 0 <= col < self.width and not 0 <= row < self.height:
+                            # Coords are integers but out of range
+                            print('\tCell ({},{}) invalid: coordinates are out of range.'
+                                  ''.format(col, row))
+                        else:
+                            # Cells are integers and in range
+                            if cmd == 'live':
+                                self.cell_at(row, col).live()
+                                print('\tRevived cell at ({}, {}).'.format(col, row))
+                            else:
+                                self.cell_at(row, col).live()
+                                print('\tKilled cell at ({}, {})'.format(col, row))
+            elif cmd == 'end':
+                cont = False
+            elif cmd == 'help':
+                print('\tCommands:')
+                for i in commands:
+                    print('\t\t{} - {}'.format(i, commands[i]))
+            else:
+                print('Invalid command. ', end='')
+
+            print()
 
     def render_board(self):
         """Render the current state of the board."""
@@ -280,12 +333,12 @@ def game_loop():
 
 
 def main():
-    board = Board(0, 10, 100)
+    board = Board(0, 15, 15)
     board.render_board()
-    board.cell_at(2, 3).live()
-    board.cell_at(2, 4).live()
-    board.cell_at(3, 3).live()
-    board.cell_at(3, 5).live()
+    board.set_board_states()
+    board.render_board()
+    input('Press enter to continue.')
+    board.tick_board()
     board.render_board()
     input('Press enter to continue.')
     board.tick_board()
