@@ -132,25 +132,22 @@ class Board:
 
         return new_board.state
 
-    @staticmethod
-    def row_in_range(board: Board, row: int) -> bool:
+    def row_in_range(self, row: int) -> bool:
         """True if row is in range of the board height."""
 
-        return 0 <= row < board.height
+        return 0 <= row < self.height
 
-    @staticmethod
-    def col_in_range(board: Board, col: int) -> bool:
+    def col_in_range(self, col: int) -> bool:
         """True if col is in range of the board width."""
 
-        return 0 <= col < board.width
+        return 0 <= col < self.width
 
-    @staticmethod
-    def coord_in_range(board: Board, coord: tuple) -> bool:
+    def coord_in_range(self, coord: tuple) -> bool:
         """True if items in given (col, row) coordinate contains valid indices of the board."""
 
         return all(isinstance(num, int) for num in coord) \
-               and board.row_in_range(board, coord[0]) \
-               and board.col_in_range(board, coord[1])
+               and self.row_in_range(coord[0]) \
+               and self.col_in_range(coord[1])
 
 class Cell:
 
