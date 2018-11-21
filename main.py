@@ -135,19 +135,22 @@ class Cell:
 
         # Sets neighbors differently depending on whether the cell at state[row][col]
         # is on one of the 4 edges of the board or is a corner of the board
+        # NOTE: The board is rendered bottom to top, so state[0] is the row that
+        # will be printed on the bottom.
         if col == 0:
+            # Cell is on left edge
             if row == 0:
-                # Cell is in top left corner
-                right = state[row][col + 1]
-                down_right = state[row - 1][col + 1]
-                down = state[row - 1][col]
-
-                neighbors = sum([right, down_right, down])
-            elif row == len(state):
                 # Cell is in bottom left corner
                 top = state[row + 1][col]
                 top_right = state[row + 1][col + 1]
                 right = state[row][col + 1]
+
+                neighbors = Cell.num_alive([top, top_right, right])
+            elif row == len(state)-1:
+                # Cell is in top left corner
+                right = state[row][col + 1]
+                down_right = state[row - 1][col + 1]
+                down = state[row - 1][col]
 
                 neighbors = sum([top, top_right, right])
             else:
@@ -162,17 +165,17 @@ class Cell:
         elif col == len(state[0])-1:
             # Cell is on right edge
             if row == 0:
-                # Cell is in top right corner
-                down = state[row - 1][col]
-                down_left = state[row - 1][col - 1]
-                left = state[row][col - 1]
-
-                neighbors = sum([down, down_left, left])
-            elif row == len(state)-1:
                 # Cell is in bottom right corner
                 left = state[row][col - 1]
                 top_left = state[row + 1][col - 1]
                 top = state[row + 1][col]
+
+                neighbors = sum([left, top_left, top])
+            elif row == len(state)-1:
+                # Cell is in top right corner
+                down = state[row - 1][col]
+                down_left = state[row - 1][col - 1]
+                left = state[row][col - 1]
 
                 neighbors = sum([left, top_left, top])
             else:
@@ -185,21 +188,21 @@ class Cell:
 
                 neighbors = sum([down, down_left, left, top_left, top])
         elif row == 0:
-            # Cell is on top edge
-            right = state[row][col + 1]
-            down_right = state[row - 1][col + 1]
-            down = state[row - 1][col]
-            down_left = state[row - 1][col - 1]
-            left = state[row][col - 1]
-
-            neighbors = sum([right, down_right, down, down_left, left])
-        elif row == len(state)-1:
-            # Cell is on bottom edge
+            # Cell is on bottom edge, but not a corner
             left = state[row][col - 1]
             top_left = state[row + 1][col - 1]
             top = state[row + 1][col]
             top_right = state[row + 1][col + 1]
             right = state[row][col + 1]
+
+            neighbors = sum([right, down_right, down, down_left, left])
+        elif row == len(state)-1:
+            # Cell is on top edge, but nor a corner
+            right = state[row][col + 1]
+            down_right = state[row - 1][col + 1]
+            down = state[row - 1][col]
+            down_left = state[row - 1][col - 1]
+            left = state[row][col - 1]
 
             neighbors = sum([left, top_left, top, top_right, right])
         else:
