@@ -41,9 +41,19 @@ class Board:
         for i in range(tick):
             self.advance_all()
 
-    def check_all(self):
+    def advance_all(self):
         """Advance every cell on the board by one game tick."""
-        pass
+
+        # Create a copy of the current Board object
+        new_state = Board(self.tick, self.state.copy(), self.height, self.width)
+
+        for row in self.state:
+            for col in self.state[row]:
+                # Update the state of the cell in new_board
+                if self.state[row][col].next_state():
+                    new_state.state[row][col].live()
+                else:
+                    new_state.state[row][col].die()
 
 
 class Cell:
