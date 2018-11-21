@@ -6,16 +6,7 @@ class Board:
         """Initialize game object."""
 
         if state is None:
-            if height is None or width is None:
-                # Must have height and width to create board state implicitly
-                raise ValueError('Board object initialized with invalid arguments')
-            else:
-                state = [[Cell(False, row, col) for col in range(width)] for row in range(height)]
-        elif type(state) == int and type(height) == int:
-            # Make it possible to initialize a Board
-            # with Board(0, 500, 500) for width, height = 500
-            width = height
-            height = state
+            state = [[Cell(False, row, col, self) for col in range(width)] for row in range(height)]
         if height is None:
             height = len(state)
         if width is None:
@@ -25,6 +16,19 @@ class Board:
         self.state = state
         self.height = height
         self.width = width
+
+    def __str__(self):
+        """Display relevant metadata for Board objects."""
+
+        s = '<__main__.Board object at {}>:'.format(hex(id(self)))
+        s += '\n\ttick: {}'.format(self.tick)
+        s += '\n\theight: {}'.format(self.height)
+        s += '\n\twidth: {}'.format(self.width)
+        s += '\n\tstate:'
+        for row in self.state:
+            s += '\n\t\t{}'.format(row)
+
+        return s
 
     def render_board(self):
         """Render the current state of the board."""
@@ -46,17 +50,19 @@ class Board:
         # Bottom of the board
         print('└' + '─'*self.width + '┘')
 
-    def tick(self, tick):
+    def tick(self, tick=1):
         """Advance the board by given number of game ticks."""
 
         for i in range(tick):
-            self.advance_all()
+            self.state = self.advance_all()
+
+        self.tick += tick
 
     def advance_all(self):
         """Advance every cell on the board by one game tick."""
 
         # Create a copy of the current Board object
-        new_state = Board(self.tick, self.state.copy(), self.height, self.width)
+        new_board = Board(self.tick, self.state.copy(), self.height, self.width)
 
         for row in self.state:
             for col in self.state[row]:
@@ -65,23 +71,26 @@ class Board:
 
                 # Update the state of the cell in new_board
                 if cell.should_live():
-                    new_state.state[row][col].live()
+                    new_board.state[row][col].live()
                 else:
-                    new_state.state[row][col].die()
+                    new_board.state[row][col].die()
+
+        return new_board.state
 
 
 class Cell:
+
     # Characters used to print alive and dead cell states
     alive_char = 'O'
     dead_char = ' '
 
-    def __init__(self, state, row, col):
+    def __init__(self, state, row, col, board: object):
         """Create a cell object."""
 
         self.state = state
         self.row = row
         self.col = col
-        self.neighbors = self.num_alive_neighbors()
+        self.neighbors = self.num_alive_neighbors(board)
 
     def __str__(self) -> str:
         """Print character showing aliveness of the given cell."""
@@ -106,11 +115,11 @@ class Cell:
 
         self.state = False
 
-    def num_alive_neighbors(self) -> int:
-        """Return number of alive neighbors of the given cell."""
+    def num_alive_neighbors(self, board: object) -> int:
+        """Return number of alive cells adjacent to the given cell."""
 
         # Shorten variables for reference
-        state = self.state
+        state = board.state
         row = self.row
         col = self.col
 
@@ -122,8 +131,8 @@ class Cell:
         assert 0 <= row < len(state)
         assert 0 <= col < len(state[0])
 
-        # Sets neighbors differently depending on whether state[row][col]
-        # is on one of the 4 edges of the board or is on a corner of the board
+        # Sets neighbors differently depending on whether the cell at state[row][col]
+        # is on one of the 4 edges of the board or is a corner of the board
         if col == 0:
             if row == 0:
                 # Cell is in top left corner
@@ -210,24 +219,21 @@ class Cell:
     def should_live(self) -> bool:
         """Determine if cell should be alive next game tick."""
 
-        # Get number of adjacent living cells
-        num_neighbors = self.num_alive_neighbors()
-
         # Assume state doesn't change
         new_state = self.state
 
         # Check to see if it should
         if self.is_alive():
             # Cell is alive
-            if num_neighbors < 2:
+            if self.neighbors < 2:
                 # Die by underpopulation
                 new_state = False
-            elif num_neighbors > 3:
+            elif self.neighbors > 3:
                 # Die by overpopulation
                 new_state = False
         else:
             # Cell is dead
-            if num_neighbors == 3:
+            if self.neighbors == 3:
                 # Live by reproduction
                 new_state = True
 
@@ -255,7 +261,9 @@ def game_loop():
 
 
 def main():
-    board = Board()
+    board = Board(0, width=5, height=10)
+    print(board)
+    print('test:', len(board.state))
 
 
 if __name__ == '__main__':
