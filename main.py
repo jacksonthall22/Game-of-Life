@@ -59,6 +59,11 @@ class Board:
 
         self.tick += tick
 
+    def cell_at(self, row, col):
+        """Return Cell object at specified row and col."""
+
+        return self.board[row][col]
+
     def advance_all(self):
         """Advance every cell on the board by one game tick."""
 
