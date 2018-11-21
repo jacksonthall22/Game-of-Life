@@ -2,9 +2,20 @@ import pygame
 
 
 class Board:
-    def __init__(self, tick, state, height=None, width=None):
+    def __init__(self, tick, state=None, height=None, width=None):
         """Initialize game object."""
 
+        if state is None:
+            if height is None or width is None:
+                # Must have height and width to create board state implicitly
+                raise ValueError('Board object initialized with invalid arguments')
+            else:
+                state = [[Cell(False, row, col) for col in range(width)] for row in range(height)]
+        elif type(state) == int and type(height) == int:
+            # Make it possible to initialize a Board
+            # with Board(0, 500, 500) for width, height = 500
+            width = height
+            height = state
         if height is None:
             height = len(state)
         if width is None:
@@ -60,6 +71,7 @@ class Board:
 
 
 class Cell:
+    # Characters used to print alive and dead cell states
     alive_char = 'O'
     dead_char = ' '
 
@@ -71,7 +83,7 @@ class Cell:
         self.col = col
         self.neighbors = self.num_alive_neighbors()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Print character showing aliveness of the given cell."""
 
         if self.is_alive():
@@ -79,7 +91,7 @@ class Cell:
         else:
             return Cell.dead_char
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         """Return True iff cell is alive."""
 
         return self.state
@@ -94,7 +106,7 @@ class Cell:
 
         self.state = False
 
-    def num_alive_neighbors(self):
+    def num_alive_neighbors(self) -> int:
         """Return number of alive neighbors of the given cell."""
 
         # Shorten variables for reference
@@ -205,7 +217,7 @@ class Cell:
         new_state = self.state
 
         # Check to see if it should
-        if self.state:
+        if self.is_alive():
             # Cell is alive
             if num_neighbors < 2:
                 # Die by underpopulation
