@@ -49,8 +49,11 @@ class Board:
 
         for row in self.state:
             for col in self.state[row]:
+                # The cell object at this board position
+                cell = self.state[row][col]
+
                 # Update the state of the cell in new_board
-                if self.state[row][col].next_state():
+                if cell.next_state():
                     new_state.state[row][col].live()
                 else:
                     new_state.state[row][col].die()
@@ -90,105 +93,113 @@ class Cell:
 
         self.state = False
 
-    def num_alive_neighbors(self, x, y):
+    def num_alive_neighbors(self):
         """Return number of alive neighbors of the given cell."""
 
+        # Shorten variables for reference
         state = self.state
+        row = self.row
+        col = self.col
 
-        # State and values in state have length
+        # State and values in state must have length
         assert len(state) > 0
         assert len(state[0]) > 0
 
-        # x and y are in bounds
-        assert 0 <= y < len(state)
-        assert 0 <= x < len(state[0])
+        # Row and col are in bounds
+        assert 0 <= row < len(state)
+        assert 0 <= col < len(state[0])
 
-        # Sets num_neighbors differently depending on whether state[y][x]
+        # Sets num_neighbors differently depending on whether state[row][col]
         # is on one of the 4 edges of the board or is on a corner of the board
-        if x == 0:
-            if y == 0:
+        if col == 0:
+            if row == 0:
                 # Cell is in top left corner
-                right = state[y][x + 1]
-                down_right = state[y - 1][x + 1]
-                down = state[y - 1][x]
+                right = state[row][col + 1]
+                down_right = state[row - 1][col + 1]
+                down = state[row - 1][col]
 
                 num_neighbors = sum([right, down_right, down])
-            elif y == len(state):
+            elif row == len(state):
                 # Cell is in bottom left corner
-                top = state[y + 1][x]
-                top_right = state[y + 1][x + 1]
-                right = state[y][x + 1]
+                top = state[row + 1][col]
+                top_right = state[row + 1][col + 1]
+                right = state[row][col + 1]
 
                 num_neighbors = sum([top, top_right, right])
             else:
                 # Cell is on left edge, but not a corner
-                top = state[y + 1][x]
-                top_right = state[y + 1][x + 1]
-                right = state[y][x + 1]
-                down_right = state[y - 1][x + 1]
-                down = state[y - 1][x]
+                top = state[row + 1][col]
+                top_right = state[row + 1][col + 1]
+                right = state[row][col + 1]
+                down_right = state[row - 1][col + 1]
+                down = state[row - 1][col]
 
                 num_neighbors = sum([top, top_right, right, down_right, down])
-        elif x == len(state[0])-1:
+        elif col == len(state[0])-1:
             # Cell is on right edge
-            if y == 0:
+            if row == 0:
                 # Cell is in top right corner
-                down = state[y - 1][x]
-                down_left = state[y - 1][x - 1]
-                left = state[y][x - 1]
+                down = state[row - 1][col]
+                down_left = state[row - 1][col - 1]
+                left = state[row][col - 1]
 
                 num_neighbors = sum([down, down_left, left])
-            elif y == len(state)-1:
+            elif row == len(state)-1:
                 # Cell is in bottom right corner
-                left = state[y][x - 1]
-                top_left = state[y + 1][x - 1]
-                top = state[y + 1][x]
+                left = state[row][col - 1]
+                top_left = state[row + 1][col - 1]
+                top = state[row + 1][col]
 
                 num_neighbors = sum([left, top_left, top])
             else:
                 # Cell is on right edge, but not a corner
-                down = state[y - 1][x]
-                down_left = state[y - 1][x - 1]
-                left = state[y][x - 1]
-                top_left = state[y + 1][x - 1]
-                top = state[y + 1][x]
+                down = state[row - 1][col]
+                down_left = state[row - 1][col - 1]
+                left = state[row][col - 1]
+                top_left = state[row + 1][col - 1]
+                top = state[row + 1][col]
 
                 num_neighbors = sum([down, down_left, left, top_left, top])
-        elif y == 0:
+        elif row == 0:
             # Cell is on top edge
-            right = state[y][x + 1]
-            down_right = state[y - 1][x + 1]
-            down = state[y - 1][x]
-            down_left = state[y - 1][x - 1]
-            left = state[y][x - 1]
+            right = state[row][col + 1]
+            down_right = state[row - 1][col + 1]
+            down = state[row - 1][col]
+            down_left = state[row - 1][col - 1]
+            left = state[row][col - 1]
 
             num_neighbors = sum([right, down_right, down, down_left, left])
-        elif y == len(state)-1:
+        elif row == len(state)-1:
             # Cell is on bottom edge
-            left = state[y][x - 1]
-            top_left = state[y + 1][x - 1]
-            top = state[y + 1][x]
-            top_right = state[y + 1][x + 1]
-            right = state[y][x + 1]
+            left = state[row][col - 1]
+            top_left = state[row + 1][col - 1]
+            top = state[row + 1][col]
+            top_right = state[row + 1][col + 1]
+            right = state[row][col + 1]
 
             num_neighbors = sum([left, top_left, top, top_right, right])
         else:
             # Cell is not on an edge of the board
-            top_left = state[y + 1][x - 1]
-            top = state[y + 1][x]
-            top_right = state[y + 1][x + 1]
-            right = state[y][x + 1]
-            down_right = state[y - 1][x + 1]
-            down = state[y - 1][x]
-            down_left = state[y - 1][x - 1]
-            left = state[y][x - 1]
+            top_left = state[row + 1][col - 1]
+            top = state[row + 1][col]
+            top_right = state[row + 1][col + 1]
+            right = state[row][col + 1]
+            down_right = state[row - 1][col + 1]
+            down = state[row - 1][col]
+            down_left = state[row - 1][col - 1]
+            left = state[row][col - 1]
 
             num_neighbors = sum(
                 [top_left, top, top_right, right, down_right, down, down_left, left])
 
         return num_neighbors
 
-    def next_state(self, num_neighbors) -> bool:
+    def next_state(self) -> bool:
+        """Determine if cell should be alive next game tick."""
+
+        # Get number of adjacent living cells
+        num_neighbors = self.num_alive_neighbors()
+
         # Assume state doesn't change
         new_state = self.state
 
