@@ -180,7 +180,7 @@ class Cell:
                 top_left = state[row + 1][col - 1]
                 top = state[row + 1][col]
 
-                neighbors = sum([left, top_left, top])
+                neighbors = Cell.num_alive([left, top_left, top])
             elif row == len(state)-1:
                 # Cell is in top right corner
                 down = state[row - 1][col]
@@ -280,10 +280,14 @@ def game_loop():
 
 
 def main():
-    board = Board(0, 10, 10)
+    board = Board(0, 10, 100)
     board.render_board()
     board.cell_at(2, 3).live()
+    board.cell_at(2, 4).live()
+    board.cell_at(3, 3).live()
+    board.cell_at(3, 5).live()
     board.render_board()
+    input('Press enter to continue.')
     board.tick_board()
     board.render_board()
 
