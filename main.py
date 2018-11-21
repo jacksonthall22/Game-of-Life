@@ -23,15 +23,23 @@ class Board:
 
 
 class Cell:
-
-    char = 'O'
-
     def __init__(self, state, row, col):
         """Create a cell object."""
 
         self.state = state
         self.row = row
         self.col = col
+
+    def __str__(self):
+        """Print character showing aliveness of the given cell."""
+
+        alive_char = 'O'
+        dead_char = ' '
+
+        if self.is_alive():
+            print(alive_char)
+        else:
+            print(dead_char)
 
     def is_alive(self):
         """Return True iff cell is alive."""
