@@ -37,9 +37,9 @@ class Cell:
         """Print character showing aliveness of the given cell."""
 
         if self.is_alive():
-            print(Cell.alive_char)
+            return Cell.alive_char
         else:
-            print(Cell.dead_char)
+            return Cell.dead_char
 
     def is_alive(self):
         """Return True iff cell is alive."""
