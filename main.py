@@ -31,21 +31,21 @@ class Board:
         """Render the current state of the board."""
 
         # Top of the board
-        print('┌' + '─'*self.width + '┐')
+        print('┌' + '─' * (self.width*2 + 2) + '┐')
 
         # Middle of the board
         for row in range(self.height-1, -1, -1):
             # Left edge of the board
-            print('│', end='')
+            print('│ ', end='')
             for col in range(self.width):
                 # Print the state of the cell
                 print(self.cell_at(row, col), end='')
 
             # Right edge of the board
-            print('│')
+            print(' │')
 
         # Bottom of the board
-        print('└' + '─'*self.width + '┘')
+        print('└' + '─' * (self.width*2 + 2) + '┘')
 
     def tick_board(self, tick=1):
         """Advance the board by given number of game ticks."""
@@ -83,8 +83,8 @@ class Board:
 class Cell:
 
     # Characters used to print alive and dead cell states
-    alive_char = 'O'
-    dead_char = ' '
+    alive_char = '█'
+    dead_char = '░'
 
     def __init__(self, state: bool, row, col, board: Board):
         """Create a cell object."""
@@ -98,9 +98,9 @@ class Cell:
         """Print character showing aliveness of the given cell."""
 
         if self.is_alive():
-            return Cell.alive_char
+            return Cell.alive_char * 2
         else:
-            return Cell.dead_char
+            return Cell.dead_char * 2
 
     def is_alive(self) -> bool:
         """Return True iff cell is alive."""
