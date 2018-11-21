@@ -66,16 +66,16 @@ class Board:
         # Create a copy of the current Board object
         new_board = Board(self.tick, self.height, self.width, self.state.copy())
 
-        for row in self.state:
-            for col in self.state[row]:
+        for row in range(self.height-1, -1, -1):
+            for col in range(self.width):
                 # The cell object at this board position
-                cell = self.state[row][col]
+                cell = self.cell_at(row, col)
 
                 # Update the state of the cell in new_board
                 if cell.should_live():
-                    new_board.state[row][col].live()
+                    cell.live()
                 else:
-                    new_board.state[row][col].die()
+                    cell.die()
 
         return new_board.state
 
