@@ -2,12 +2,18 @@ import pygame
 
 
 class Board:
-    def __init__(self, state, height, width, tick):
+    def __init__(self, tick, state, height=None, width=None):
         """Initialize game object."""
+
+        if height is None:
+            height = len(state)
+        if width is None:
+            width = len(state[0])
+
+        self.tick = tick
         self.state = state
         self.height = height
         self.width = width
-        self.tick = tick
 
     def render_board(self):
         """Render the current state of the board."""
@@ -25,7 +31,7 @@ class Board:
 
             # Right edge of the board
             print('│')
-        
+
         # Bottom of the board
         print('└' + '─'*self.width + '┘')
 
