@@ -107,6 +107,16 @@ class Cell:
 
         return self.state
 
+    @staticmethod
+    def num_alive(cells):
+        """Return number of alive cell objects in given iterable."""
+
+        total = 0
+        for cell in cells:
+            total += cell.is_alive()
+
+        return total
+
     def live(self):
         """Make the given cell alive."""
 
@@ -152,7 +162,7 @@ class Cell:
                 down_right = state[row - 1][col + 1]
                 down = state[row - 1][col]
 
-                neighbors = sum([top, top_right, right])
+                neighbors = Cell.num_alive([right, down_right, down])
             else:
                 # Cell is on left edge, but not a corner
                 top = state[row + 1][col]
@@ -161,7 +171,7 @@ class Cell:
                 down_right = state[row - 1][col + 1]
                 down = state[row - 1][col]
 
-                neighbors = sum([top, top_right, right, down_right, down])
+                neighbors = Cell.num_alive([top, top_right, right, down_right, down])
         elif col == len(state[0])-1:
             # Cell is on right edge
             if row == 0:
@@ -177,7 +187,7 @@ class Cell:
                 down_left = state[row - 1][col - 1]
                 left = state[row][col - 1]
 
-                neighbors = sum([left, top_left, top])
+                neighbors = Cell.num_alive([down, down_left, left])
             else:
                 # Cell is on right edge, but not a corner
                 down = state[row - 1][col]
@@ -186,7 +196,7 @@ class Cell:
                 top_left = state[row + 1][col - 1]
                 top = state[row + 1][col]
 
-                neighbors = sum([down, down_left, left, top_left, top])
+                neighbors = Cell.num_alive([down, down_left, left, top_left, top])
         elif row == 0:
             # Cell is on bottom edge, but not a corner
             left = state[row][col - 1]
@@ -195,7 +205,7 @@ class Cell:
             top_right = state[row + 1][col + 1]
             right = state[row][col + 1]
 
-            neighbors = sum([right, down_right, down, down_left, left])
+            neighbors = Cell.num_alive([left, top_left, top, top_right, right])
         elif row == len(state)-1:
             # Cell is on top edge, but nor a corner
             right = state[row][col + 1]
@@ -204,7 +214,7 @@ class Cell:
             down_left = state[row - 1][col - 1]
             left = state[row][col - 1]
 
-            neighbors = sum([left, top_left, top, top_right, right])
+            neighbors = Cell.num_alive([right, down_right, down, down_left, left])
         else:
             # Cell is not on an edge of the board
             top_left = state[row + 1][col - 1]
@@ -216,7 +226,7 @@ class Cell:
             down_left = state[row - 1][col - 1]
             left = state[row][col - 1]
 
-            neighbors = sum(
+            neighbors = Cell.num_alive(
                 [top_left, top, top_right, right, down_right, down, down_left, left])
 
         # Add neighbors property
