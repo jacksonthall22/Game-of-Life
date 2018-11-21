@@ -21,9 +21,30 @@ class Board:
         """Advance every cell on the board by one game tick."""
         pass
 
-    @staticmethod
-    def num_alive_neighbors(state, x, y):
+
+class Cell:
+
+    char = 'O'
+
+    def __init__(self, state, row, col):
+        """Create a cell object."""
+
+        self.state = state
+        self.row = row
+        self.col = col
+
+    def is_alive(self):
+        """Return True iff cell is alive."""
+
+        return self.state
+
+    def toggle_state(self):
+        self.state = not self.state
+
+    def num_alive_neighbors(self, x, y):
         """Return number of alive neighbors of the given cell."""
+
+        state = self.state
 
         # State and values in state have length
         assert len(state) > 0
@@ -118,31 +139,12 @@ class Board:
 
         return num_neighbors
 
-
-class Cell:
-
-    char = 'O'
-
-    def __init__(self, state, row, col):
-        """Create a cell object."""
-
-        self.state = state
-        self.row = row
-        self.col = col
-
-    def is_alive(self):
-        """Return True iff cell is alive."""
-
-        return self.state
-
-    def toggle_state(self):
-        self.state = not self.state
-
-    @staticmethod
-    def next_state(state, num_neighbors) -> bool:
+    def next_state(self, num_neighbors) -> bool:
         # Assume state doesn't change
-        new_state = state
-        if state:
+        new_state = self.state
+
+        # Check to see if it should
+        if self.state:
             # Cell is alive
             if num_neighbors < 2:
                 # Die by underpopulation
