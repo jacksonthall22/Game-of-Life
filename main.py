@@ -1,3 +1,6 @@
+import pygame
+
+
 class Board:
     def __init__(self, state, height, width, tick):
         """Initialize game object."""
@@ -113,18 +116,34 @@ class Board:
         return num_neighbors
 
     @staticmethod
-    def should_live(state):
-        """Determine if cell should live on next game tick."""
+    def next_state(state, x, y) -> bool:
+        """Determine the state of the given cell on the next game tick."""
+        # num_alive_neighbors = Board.num_alive_neighbors(state, x, y)
         pass
 
-    @staticmethod
-    def should_die(state):
-        """Determine if cell should die on next game tick."""
-        pass
+
+def game_loop():
+    # Set up window data
+    pygame.init()
+    win = pygame.display.set_mode((500, 500))
+    pygame.display.set_caption('Game of Life')
+    millis_per_tick = 100
+
+    # Main game loop
+    run = True
+    while run:
+        pygame.time.delay(millis_per_tick)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+
+        pygame.draw.rect(win, (50, 60, 60), )
+    pygame.quit()
 
 
 def main():
-    pass
+    board = Board()
 
 
 if __name__ == '__main__':
