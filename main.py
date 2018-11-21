@@ -11,7 +11,23 @@ class Board:
 
     def render_board(self):
         """Render the current state of the board."""
-        pass
+
+        # Top of the board
+        print('┌' + '─'*self.width + '┐')
+
+        # Middle of the board
+        for row in range(len(self.state), -1, -1):
+            # Left edge of the board
+            print('│', end='')
+            for col in self.state[row]:
+                # Print the state of the cell
+                print(self.state[row][col])
+
+            # Right edge of the board
+            print('│')
+        
+        # Bottom of the board
+        print('└' + '─'*self.width + '┘')
 
     def tick(self, state, tick):
         """Advance the board by given number of ticks."""
