@@ -1,8 +1,9 @@
+from typing import List
 import pygame
 
 
 class Board:
-    def __init__(self, tick, state=None, height=None, width=None):
+    def __init__(self, tick: int, state: List[List[object]] = None, height=None, width=None):
         """Initialize game object."""
 
         if state is None:
@@ -84,13 +85,13 @@ class Cell:
     alive_char = 'O'
     dead_char = ' '
 
-    def __init__(self, state, row, col, board: object):
+    def __init__(self, state: bool, row, col, board: object):
         """Create a cell object."""
 
         self.state = state
         self.row = row
         self.col = col
-        self.neighbors = self.num_alive_neighbors(board)
+        self.board = board
 
     def __str__(self) -> str:
         """Print character showing aliveness of the given cell."""
@@ -214,7 +215,8 @@ class Cell:
             neighbors = sum(
                 [top_left, top, top_right, right, down_right, down, down_left, left])
 
-        return neighbors
+        # Add neighbors property
+        setattr(self, 'neighbors', neighbors)
 
     def should_live(self) -> bool:
         """Determine if cell should be alive next game tick."""
