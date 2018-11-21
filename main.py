@@ -47,7 +47,7 @@ class Board:
         # Bottom of the board
         print('└' + '─'*self.width + '┘')
 
-    def tick(self, tick=1):
+    def tick_board(self, tick=1):
         """Advance the board by given number of game ticks."""
 
         for i in range(tick):
@@ -58,7 +58,7 @@ class Board:
     def cell_at(self, row, col):
         """Return Cell object at specified row and col."""
 
-        return self.board[row][col]
+        return self.state[row][col]
 
     def advance_all(self):
         """Advance every cell on the board by one game tick."""
