@@ -35,9 +35,11 @@ class Board:
         # Bottom of the board
         print('└' + '─'*self.width + '┘')
 
-    def tick(self, state, tick):
-        """Advance the board by given number of ticks."""
-        pass
+    def tick(self, tick):
+        """Advance the board by given number of game ticks."""
+
+        for i in range(tick):
+            self.advance_all()
 
     def check_all(self):
         """Advance every cell on the board by one game tick."""
