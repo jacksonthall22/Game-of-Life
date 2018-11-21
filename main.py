@@ -118,11 +118,45 @@ class Board:
 
         return num_neighbors
 
+
+class Cell:
+
+    char = 'O'
+
+    def __init__(self, state, row, col):
+        """Create a cell object."""
+
+        self.state = state
+        self.row = row
+        self.col = col
+
+    def is_alive(self):
+        """Return True iff cell is alive."""
+
+        return self.state
+
+    def toggle_state(self):
+        self.state = not self.state
+
     @staticmethod
-    def next_state(state, x, y) -> bool:
-        """Determine the state of the given cell on the next game tick."""
-        # num_alive_neighbors = Board.num_alive_neighbors(state, x, y)
-        pass
+    def next_state(state, num_neighbors) -> bool:
+        # Assume state doesn't change
+        new_state = state
+        if state:
+            # Cell is alive
+            if num_neighbors < 2:
+                # Die by underpopulation
+                new_state = False
+            elif num_neighbors > 3:
+                # Die by overpopulation
+                new_state = False
+        else:
+            # Cell is dead
+            if num_neighbors == 3:
+                # Live by reproduction
+                new_state = True
+
+        return new_state
 
 
 def game_loop():
