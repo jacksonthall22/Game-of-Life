@@ -117,7 +117,7 @@ class Cell:
 
         self.state = False
 
-    def num_alive_neighbors(self, board: object) -> int:
+    def set_alive_neighbors(self, board: Board):
         """Return number of alive cells adjacent to the given cell."""
 
         # Shorten variables for reference
@@ -221,6 +221,8 @@ class Cell:
 
     def should_live(self) -> bool:
         """Determine if cell should be alive next game tick."""
+
+        self.set_alive_neighbors(self.board)
 
         # Assume state doesn't change
         new_state = self.state
