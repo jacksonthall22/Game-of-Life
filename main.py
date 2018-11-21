@@ -132,6 +132,25 @@ class Board:
 
         return new_board.state
 
+    @staticmethod
+    def row_in_range(board: Board, row: int) -> bool:
+        """True if row is in range of the board height."""
+
+        return 0 <= row < board.height
+
+    @staticmethod
+    def col_in_range(board: Board, col: int) -> bool:
+        """True if col is in range of the board width."""
+
+        return 0 <= col < board.width
+
+    @staticmethod
+    def coord_in_range(board: Board, coord: tuple) -> bool:
+        """True if items in given (col, row) coordinate contains valid indices of the board."""
+
+        return all(isinstance(num, int) for num in coord) \
+               and board.row_in_range(board, coord[0]) \
+               and board.col_in_range(board, coord[1])
 
 class Cell:
 
@@ -330,6 +349,15 @@ def game_loop():
     #     pygame.draw.rect(win, (50, 60, 60), )
     # pygame.quit()
     pass
+
+
+def try_int(s: str):
+    """Return an int if possible, else the original value."""
+
+    if s.isdigit():
+        return int(s)
+    else:
+        return s
 
 
 def main():
