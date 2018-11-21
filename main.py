@@ -25,24 +25,17 @@ class Board:
     def num_alive_neighbors(state, x, y):
         """Return number of alive neighbors of the given cell."""
 
+        # State and values in state have length
         assert len(state) > 0
         assert len(state[0]) > 0
-        assert y < len(state)
-        assert x < len(state[0])
 
-        if not any([x == 0, y == 0, x == len(state[0])-1, y == len(state)-1]):
-            # Cell is not on an edge of the board
-            top_left = state[y + 1][x - 1]
-            top = state[y + 1][x]
-            top_right = state[y + 1][x + 1]
-            right = state[y][x + 1]
-            down_right = state[y - 1][x + 1]
-            down = state[y - 1][x]
-            down_left = state[y - 1][x - 1]
-            left = state[y][x - 1]
+        # x and y are in bounds
+        assert 0 <= y < len(state)
+        assert 0 <= x < len(state[0])
 
-            num_neighbors = sum([top_left, top, top_right, right, down_right, down, down_left, left])
-        elif x == 0:
+        # Sets num_neighbors differently depending on whether state[y][x]
+        # is on one of the 4 edges of the board or is on a corner of the board
+        if x == 0:
             if y == 0:
                 # Cell is in top left corner
                 right = state[y][x + 1]
@@ -110,8 +103,18 @@ class Board:
 
             num_neighbors = sum([left, top_left, top, top_right, right])
         else:
-            raise ValueError('num_alive_neighbors() called with invalid x and y\n\tx: {}, y: {}'
-                             ''.format(x, y))
+            # Cell is not on an edge of the board
+            top_left = state[y + 1][x - 1]
+            top = state[y + 1][x]
+            top_right = state[y + 1][x + 1]
+            right = state[y][x + 1]
+            down_right = state[y - 1][x + 1]
+            down = state[y - 1][x]
+            down_left = state[y - 1][x - 1]
+            left = state[y][x - 1]
+
+            num_neighbors = sum(
+                [top_left, top, top_right, right, down_right, down, down_left, left])
 
         return num_neighbors
 
