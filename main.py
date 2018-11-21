@@ -3,20 +3,16 @@ import pygame
 
 
 class Board:
-    def __init__(self, tick: int, state: List[List[object]] = None, height=None, width=None):
-        """Initialize game object."""
+    def __init__(self, tick: int, height, width, state=None):
+        """Initialize board object."""
 
         if state is None:
             state = [[Cell(False, row, col, self) for col in range(width)] for row in range(height)]
-        if height is None:
-            height = len(state)
-        if width is None:
-            width = len(state[0])
 
         self.tick = tick
-        self.state = state
         self.height = height
         self.width = width
+        self.state = state
 
     def __str__(self):
         """Display relevant metadata for Board objects."""
@@ -68,7 +64,7 @@ class Board:
         """Advance every cell on the board by one game tick."""
 
         # Create a copy of the current Board object
-        new_board = Board(self.tick, self.state.copy(), self.height, self.width)
+        new_board = Board(self.tick, self.height, self.width, self.state.copy())
 
         for row in self.state:
             for col in self.state[row]:
