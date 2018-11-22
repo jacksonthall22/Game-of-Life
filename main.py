@@ -512,16 +512,14 @@ def prompt_board_size() -> (int, int):
 
 
 def main():
-    board = Board(0, 15, 15)
-    board.render_board()
+    # Get board size
+    height, width = prompt_board_size()
+
+    board = Board(0, height, width)
+
     board.set_board_states()
-    board.render_board()
-    input('Press enter to continue.')
-    board.tick_board()
-    board.render_board()
-    input('Press enter to continue.')
-    board.tick_board()
-    board.render_board()
+
+    game_loop(board)
 
 
 if __name__ == '__main__':
