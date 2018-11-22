@@ -40,14 +40,14 @@ class Board:
                     'help': 'list available commands'}
 
         def valid_cell_format(s):
-            """Determine if s follows the format "(a, b), (c, d), ... ".
+            """Determine if string follows the format "(a, b), (c, d), ... ".
 
             Credit to Patrick Artner:
                 https://stackoverflow.com/questions/53419606/validating-user-input-with-regex
 
             """
 
-            return re.match(r'^\s*([^,]+,[^,]\)\s*(?:,\s*\([^,]+,[^,]\))*)\s*$', s)
+            return re.match(r'^\s*([^,]+,[^,]+\)\s*(?:,\s*\([^,]+,[^,]+\))*)\s*$', s)
 
         def separate_valids(s):
             """Return 2 sets of valid and invalid coordinates in s respectively.
@@ -510,6 +510,7 @@ def game_loop(board: Board):
     #
     #     pygame.draw.rect(win, (50, 60, 60), )
     # pygame.quit()
+
     cont = True
     while cont:
         # Flush the terminal
