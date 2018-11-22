@@ -1,6 +1,7 @@
 import re
 import os
 import time
+import copy
 from typing import List
 # import pygame
 
@@ -24,7 +25,11 @@ class Board:
         s += '\n\ttick: {}'.format(self.tick)
         s += '\n\theight: {}'.format(self.height)
         s += '\n\twidth: {}'.format(self.width)
-        s += '\n\tstate:'
+        s += '\n\tstate: <{}>'.format(hex(id(self.state)))
+        for row in self.state:
+            s += '\n\t\t<{} : {}>'.format(hex(id(row)), )
+            s += ','.join(['<{}>'.format(self.state[row][col]) for col in row])
+            s += '>'
         for row in self.state:
             s += '\n\t\t{}'.format(row)
 
@@ -261,19 +266,19 @@ class Board:
     def advance_all(self):
         """Advance every cell on the board by one game tick."""
 
-        # Create a copy of the current Board object
-        new_board = Board(self.tick, self.height, self.width, self.state.copy())
+        # Create a deep copy of the current Board object
+        new_board = copy.deepcopy(self)
 
         for row in range(self.height-1, -1, -1):
             for col in range(self.width):
-                # The cell object at this board position
+                # The cell object at the current board position
                 cell = self.cell_at(row, col)
 
-                # Update the state of the cell in new_board
+                # Update the state of the cell in the new board
                 if cell.should_live():
-                    cell.live()
+                    new_board.cell_at(row, col).live()
                 else:
-                    cell.die()
+                    new_board.cell_at(row, col).die()
 
         return new_board.state
 
@@ -378,19 +383,16 @@ class Cell:
         if self.col == 0:
             # Cell is on left edge
             if self.row == len(self.board.state)-1:
-                print('top left corner')
                 # Cell rendered in top left corner
                 check_cells = ((+1, +0),  # right
                                (+1, -1),  # down right
                                (+0, -1))  # down
             elif self.row == 0:
-                print('bottom left corner')
                 # Cell rendered in bottom left corner
                 check_cells = ((+0, +1),  # top
                                (+1, +1),  # top right
                                (+1, +0))  # right
             else:
-                print('left edge')
                 # Cell is on left edge
                 check_cells = ((+0, +1),  # top
                                (+1, +1),  # top right
@@ -400,19 +402,16 @@ class Cell:
         elif self.col == len(self.board.state[0])-1:
             # Cell is on right edge
             if self.row == len(self.board.state)-1:
-                print('top right corner')
                 # Cell rendered in top right corner
                 check_cells = ((+0, -1),  # down
                                (-1, -1),  # down left
                                (-1, +0))  # left
             elif self.row == 0:
-                print('bottom right corner')
                 # Cell rendered in bottom right corner
                 check_cells = ((-1, +1),  # top left
                                (+0, +1),  # top
                                (-1, +0))  # left
             else:
-                print('right edge')
                 # Cell is on right edge
                 check_cells = ((-1, +1),  # top left
                                (+0, +1),  # top
@@ -420,7 +419,6 @@ class Cell:
                                (-1, -1),  # down left
                                (-1, +0))  # left
         elif self.row == len(self.board.state)-1:
-            print('top edge')
             # Cell rendered in top edge, but is not a corner
             check_cells = ((+1, +0),  # right
                            (+1, -1),  # down right
@@ -428,7 +426,6 @@ class Cell:
                            (-1, -1),  # down left
                            (-1, +0))  # left
         elif self.row == 0:
-            print('bottom edge')
             # Cell rendered in bottom edge, but is not a corner
             check_cells = ((-1, +1),  # top left
                            (+0, +1),  # top
@@ -436,7 +433,6 @@ class Cell:
                            (+1, +0),  # right
                            (-1, +0))  # left
         else:
-            print('not an edge')
             # Cell is not on an edge of the board
             check_cells = ((-1, +1),  # top left
                            (+0, +1),  # top
