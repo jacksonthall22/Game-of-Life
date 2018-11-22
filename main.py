@@ -471,7 +471,7 @@ class Cell:
         return new_state
 
 
-def game_loop(board: Board):
+def game_loop(board: Board, flush=False):
     """Tick the board until user enters "end" sentinel."""
 
     # # Set up window data
@@ -492,20 +492,43 @@ def game_loop(board: Board):
     #     pygame.draw.rect(win, (50, 60, 60), )
     # pygame.quit()
 
+    commands = {'': 'update board to the next tick',
+                'edit': 'edit current state of the board',
+                'end': 'quit the program',
+                'help': 'list available commands'}
+
     cont = True
     while cont:
-        # Flush the terminal
-        # os.system('cls||clear')
+        # Clear the terminal if applicable
+        if flush:
+            flush_terminal()
 
         # Render the board and wait
-        board.render_board('Tick: {}'.format(board.tick))
-        prompt = input('Press enter to continue or type end to end:\n>>> ').lower()
+        board.render_board('[GAME OF LIFE]  Tick: {}'.format(board.tick))
+        prompt = input('Press enter to continue or type help for more info:\n>>> ').lower().strip()
 
-        # Tick board unless user types end
-        if prompt != 'end':
+        # Validate command
+        while prompt not in commands:
+            prompt = input('Unknown command. Press enter to continue or type help for '
+                           'more info:\n>>> ').lower().strip()
+
+        # Execute command
+        if prompt == '':
             board.tick_board()
-        else:
+        elif prompt == 'edit':
+            board.set_board_states()
+            print()
+        elif prompt == 'end':
             cont = False
+            print()
+        elif prompt == 'help':
+            print('\tCommands:')
+            for i in commands:
+                if i == '':
+                    print('\t\tpress enter - {}'.format(commands[i]))
+                else:
+                    print('\t\t{} - {}'.format(i, commands[i]))
+            print()
 
 
 def try_int(s: str):
@@ -517,7 +540,13 @@ def try_int(s: str):
         return s
 
 
-def prompt_board_size() -> (int, int):
+def flush_terminal():
+    """Clear output on the terminal."""
+
+    os.system('cls||clear')
+
+
+def prompt_for_board_size() -> (int, int):
     """Prompt for and return height, width ints for a Board object."""
 
     # Get board height
@@ -564,20 +593,22 @@ def prompt_board_size() -> (int, int):
 
 
 def main():
-    # Get board size
-    height, width = prompt_board_size()
+    cont = True
+    while cont:
+        # Get board size
+        height, width = prompt_for_board_size()
 
-    # Make the board
-    board = Board(0, height, width)
+        # Make the board
+        board = Board(0, height, width)
 
-    # Set up the board
-    print('Setting up board...')
-    # time.sleep(1)
-    board.render_board('[Board Editing Mode]', True)
-    board.set_board_states()
+        # Set up the board
+        print('Setting up board...')
+        # time.sleep(1)
 
-    # Tick until user enters 'end'
-    game_loop(board)
+        board.set_board_states()
+
+        # Ticks until user enters 'end'
+        game_loop(board, True)
 
 
 if __name__ == '__main__':
