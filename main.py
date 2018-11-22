@@ -7,11 +7,14 @@ from typing import List
 
 
 class Board:
-    def __init__(self, tick: int, height, width, state=None):
+    def __init__(self, tick: int, height, width, state: List[List] = None):
         """Initialize board object."""
 
         if state is None:
             state = [[Cell(False, row, col, self) for col in range(width)] for row in range(height)]
+        else:
+            assert len(state) == height
+            assert len(state[0]) == width
 
         self.tick = tick
         self.height = height
