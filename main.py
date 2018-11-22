@@ -1,5 +1,6 @@
 import re
 import os
+import time
 from typing import List
 # import pygame
 
@@ -87,7 +88,7 @@ class Board:
 
         cont = True
         while cont:
-            cmd = input('Enter a command or type help for help:\n>>> ').lower()
+            cmd = input('Enter a command or type help for more info:\n>>> ').lower()
 
             if cmd in ['live', 'die']:
                 print()
@@ -266,9 +267,14 @@ class Cell:
             return Cell.dead_char * 2
 
     def is_alive(self) -> bool:
-        """Return True iff cell is alive."""
+        """Return True if cell is alive."""
 
         return self.state
+
+    def is_dead(self) -> bool:
+        """Return True if cell is dead."""
+
+        return not self.state
 
     @staticmethod
     def num_alive(cells):
@@ -466,7 +472,6 @@ def try_int(s: str):
 
 def prompt_board_size() -> (int, int):
     """Prompt for and return height, width ints for a Board object."""
-    print()
 
     # Get board height
     height = input('Enter board height:\n>>> ')
@@ -489,7 +494,7 @@ def prompt_board_size() -> (int, int):
     print('\tHeight set at {}.\n'.format(height))
 
     # Get board width
-    width = input('Enter board height:\n>>> ')
+    width = input('Enter board width:\n>>> ')
     while not width.isdigit():
         width = input('Invalid input. Enter board height:\n>>> ')
 
@@ -515,10 +520,16 @@ def main():
     # Get board size
     height, width = prompt_board_size()
 
+    # Make the board
     board = Board(0, height, width)
 
+    # Set up the board
+    print('Setting up board...')
+    time.sleep(1)
+    board.render_board()
     board.set_board_states()
 
+    # Tick until user enters 'end'
     game_loop(board)
 
 
