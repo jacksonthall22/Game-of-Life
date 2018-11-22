@@ -109,11 +109,17 @@ class Board:
                         for tup in valid_coords:
                             col, row = tup[0], tup[1]
                             if cmd == 'live':
-                                self.cell_at(row, col).live()
-                                print('\tRevived cell at ({}, {}).'.format(col, row))
+                                if self.cell_at(row, col).is_alive():
+                                    print('\tCell at ({}, {}) was already alive.'.format(col, row))
+                                else:
+                                    self.cell_at(row, col).live()
+                                    print('\tRevived cell at ({}, {}).'.format(col, row))
                             else:
-                                self.cell_at(row, col).live()
-                                print('\tKilled cell at ({}, {})'.format(col, row))
+                                if self.cell_at(row, col).is_dead():
+                                    print('\tCell at ({}, {}) was already dead.'.format(col, row))
+                                else:
+                                    self.cell_at(row, col).live()
+                                    print('\tKilled cell at ({}, {}).'.format(col, row))
                         if len(invalid_coords) != 0:
                             # Print the invalid coords
                             print('\tThe following coordinates were invalid '
