@@ -156,7 +156,7 @@ class Board:
                 #                 self.cell_at(row, col).live()
                 #                 print('\tKilled cell at ({}, {})'.format(col, row))
             elif cmd == 'show':
-                self.render_board()
+                self.render_board('[Board Editing Mode]')
                 print()
             elif cmd == 'end':
                 cont = False
@@ -169,14 +169,24 @@ class Board:
             else:
                 print('\nInvalid command. ', end='')
 
-    def render_board(self, msg=''):
+    def render_board(self, msg='', show_coords=False):
         """Render the current state of the board."""
 
+        # Extra left padding if showing coordinates
+        if show_coords:
+            print(' ', end='')
+
         # Top of the board
-        print('┌' + '─' * (self.width*2 + 2) + '┐')
+        print('  ' + '┌' + '─' * (self.width*2 + 2) + '┐')
 
         # Middle of the board
         for row in range(self.height-1, -1, -1):
+            # Print row coordinates if applicable
+            if show_coords and row % 5 == 0:
+                print('{} '.format(str(row).rjust(2)), end='')
+            else:
+                print('   ', end='')
+
             # Left edge of the board
             print('│ ', end='')
             for col in range(self.width):
@@ -192,8 +202,40 @@ class Board:
             else:
                 print()
 
+        # Extra left padding if showing coordinates
+        if show_coords:
+            print(' ', end='')
+
         # Bottom of the board
-        print('└' + '─' * (self.width*2 + 2) + '┘')
+        print('  ' + '└' + '─' * (self.width*2 + 2) + '┘')
+
+        # Print column coords if applicable
+        if show_coords:
+            if self.width > 99:
+                # Rewrite this part if this becomes a problem
+                raise ValueError('render_board() cannot currently handle board widths of 3 digits'
+                                 'when printing col coordinates')
+
+            if self.width > 9:
+                # Print 2-digit coordinate numbers vertically
+
+                # First and second digits of numbers
+                top_line = ''
+                bottom_line = ' '
+                for i in range(0, self.width, 5):
+                    top_line += '{0:<10}'.format(str(i).ljust(2)[0])
+                    bottom_line += '{0:<10}'.format(str(i).ljust(2)[1])
+                print('     ' + top_line)
+                print('     ' + bottom_line)
+            else:
+                # Print padding
+                print('     ', end='')
+
+                # Print numbers normally
+                for i in range(0, self.width, 5):
+                    print('{0:<10}'.format(i))
+
+            print()
 
     def tick_board(self, tick=1):
         """Advance the board by given number of game ticks."""
@@ -531,8 +573,8 @@ def main():
 
     # Set up the board
     print('Setting up board...')
-    time.sleep(1)
-    board.render_board()
+    # time.sleep(1)
+    board.render_board('[Board Editing Mode]', True)
     board.set_board_states()
 
     # Tick until user enters 'end'
