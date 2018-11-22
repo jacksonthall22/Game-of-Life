@@ -421,7 +421,7 @@ class Cell:
         return new_state
 
 
-def game_loop():
+def game_loop(board: Board):
     # # Set up window data
     # pygame.init()
     # win = pygame.display.set_mode((500, 500))
@@ -439,7 +439,20 @@ def game_loop():
     #
     #     pygame.draw.rect(win, (50, 60, 60), )
     # pygame.quit()
-    pass
+    cont = True
+    while cont:
+        # Flush the terminal
+        os.system('cls||clear')
+
+        # Render the board and wait
+        board.render_board('Tick: {}'.format(board.tick))
+        prompt = input('Press enter to continue or type end to end:\n>>> ').lower()
+
+        # Tick board unless user types end
+        if prompt != 'end':
+            board.tick_board()
+        else:
+            cont = False
 
 
 def try_int(s: str):
@@ -449,6 +462,53 @@ def try_int(s: str):
         return int(s)
     else:
         return s
+
+
+def prompt_board_size() -> (int, int):
+    """Prompt for and return height, width ints for a Board object."""
+    print()
+
+    # Get board height
+    height = input('Enter board height:\n>>> ')
+    while not height.isdigit():
+        height = input('Invalid input. Enter board height:\n>>> ')
+
+        try:
+            if int(height) > 48:
+                reset_height = input('Boards greater than 48 squares might not fit on your'
+                                     'screen. Would you like to set the board height to 48'
+                                     'squares? (y/n)\n>>> ').lower()
+                while reset_height in ['y', 'n']:
+                    reset_height = input('Enter "y" or "n":\n>>> ')
+
+                if reset_height == 'y':
+                    height = 48
+        except ValueError:
+            pass
+
+    print('\tHeight set at {}.\n'.format(height))
+
+    # Get board width
+    width = input('Enter board height:\n>>> ')
+    while not width.isdigit():
+        width = input('Invalid input. Enter board height:\n>>> ')
+
+        try:
+            if int(width) > 48:
+                reset_width = input('Boards greater than 48 squares might not fit on your'
+                                    'screen. Would you like to set the board height to 48'
+                                    'squares? (y/n)\n>>> ').lower()
+                while reset_width in ['y', 'n']:
+                    reset_width = input('Enter "y" or "n":\n>>> ')
+
+                if reset_width == 'y':
+                    width = 48
+        except ValueError:
+            pass
+
+    print('\tWidth set at {}.\n'.format(width))
+
+    return int(height), int(width)
 
 
 def main():
