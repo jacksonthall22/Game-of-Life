@@ -307,13 +307,14 @@ class Cell:
     dead_char = '░'
     dead_char_dark = '▒'
 
-    def __init__(self, state: bool, row, col, board: Board):
+    def __init__(self, state: bool, row, col, board: Board, neighbors=None):
         """Create a cell object."""
 
         self.state = state
         self.row = row
         self.col = col
         self.board = board
+        self.neighbors = neighbors
 
     def render_cell(self, dark=False, end=''):
         """Print character showing aliveness of the given cell.
@@ -359,115 +360,109 @@ class Cell:
 
         self.state = False
 
-    def set_alive_neighbors(self, board: Board):
+    def set_alive_neighbors(self):
         """Return number of alive cells adjacent to the given cell."""
 
         # Shorten variables for reference
-        state = board.state
         row = self.row
         col = self.col
 
         # State and values in state must have length
-        assert len(state) > 0
-        assert len(state[0]) > 0
+        assert len(self.board.state) > 0
+        assert len(self.board.state[0]) > 0
 
         # Row and col are in bounds
-        assert 0 <= row < len(state)
-        assert 0 <= col < len(state[0])
+        assert self.board.row_in_range(row)
+        assert self.board.col_in_range(col)
 
-        # Sets neighbors differently depending on whether the cell at state[row][col]
-        # is on one of the 4 edges of the board or is a corner of the board
+        # Sets the neighbors to sum depending on whether the cell at state[row][col]
+        # is on one of the 4 edges of the board or is a corner of the board.
         # NOTE: The board is rendered bottom to top, so state[0] is the row that
         # will be printed on the bottom.
         if col == 0:
             # Cell is on left edge
-            if row == 0:
-                # Cell is in bottom left corner
-                top = state[row + 1][col]
-                top_right = state[row + 1][col + 1]
-                right = state[row][col + 1]
-
-                neighbors = Cell.num_alive([top, top_right, right])
-            elif row == len(state)-1:
-                # Cell is in top left corner
-                right = state[row][col + 1]
-                down_right = state[row - 1][col + 1]
-                down = state[row - 1][col]
-
-                neighbors = Cell.num_alive([right, down_right, down])
+            if row == len(self.board.state)-1:
+                print('top left corner')
+                # Cell rendered in top left corner
+                check_cells = ((+1, +0),  # right
+                               (+1, -1),  # down right
+                               (+0, -1))  # down
+            elif row == 0:
+                print('bottom left corner')
+                # Cell rendered in bottom left corner
+                check_cells = ((+0, +1),  # top
+                               (+1, +1),  # top right
+                               (+1, +0))  # right
             else:
-                # Cell is on left edge, but not a corner
-                top = state[row + 1][col]
-                top_right = state[row + 1][col + 1]
-                right = state[row][col + 1]
-                down_right = state[row - 1][col + 1]
-                down = state[row - 1][col]
-
-                neighbors = Cell.num_alive([top, top_right, right, down_right, down])
-        elif col == len(state[0])-1:
+                print('left edge')
+                # Cell is on left edge
+                check_cells = ((+0, +1),  # top
+                               (+1, +1),  # top right
+                               (+1, +0),  # right
+                               (+1, -1),  # down right
+                               (+0, -1))  # down
+        elif col == len(self.board.state[0])-1:
             # Cell is on right edge
-            if row == 0:
-                # Cell is in bottom right corner
-                left = state[row][col - 1]
-                top_left = state[row + 1][col - 1]
-                top = state[row + 1][col]
-
-                neighbors = Cell.num_alive([left, top_left, top])
-            elif row == len(state)-1:
-                # Cell is in top right corner
-                down = state[row - 1][col]
-                down_left = state[row - 1][col - 1]
-                left = state[row][col - 1]
-
-                neighbors = Cell.num_alive([down, down_left, left])
+            if row == len(self.board.state)-1:
+                print('top right corner')
+                # Cell rendered in top right corner
+                check_cells = ((+0, -1),  # down
+                               (-1, -1),  # down left
+                               (-1, +0))  # left
+            elif row == 0:
+                print('bottom right corner')
+                # Cell rendered in bottom right corner
+                check_cells = ((-1, +1),  # top left
+                               (+0, +1),  # top
+                               (-1, +0))  # left
             else:
-                # Cell is on right edge, but not a corner
-                down = state[row - 1][col]
-                down_left = state[row - 1][col - 1]
-                left = state[row][col - 1]
-                top_left = state[row + 1][col - 1]
-                top = state[row + 1][col]
-
-                neighbors = Cell.num_alive([down, down_left, left, top_left, top])
+                print('right edge')
+                # Cell is on right edge
+                check_cells = ((-1, +1),  # top left
+                               (+0, +1),  # top
+                               (+0, -1),  # down
+                               (-1, -1),  # down left
+                               (-1, +0))  # left
+        elif row == len(self.board.state)-1:
+            print('top edge')
+            # Cell rendered in top edge, but is not a corner
+            check_cells = ((+1, +0),  # right
+                           (+1, -1),  # down right
+                           (+0, -1),  # down
+                           (-1, -1),  # down left
+                           (-1, +0))  # left
         elif row == 0:
-            # Cell is on bottom edge, but not a corner
-            left = state[row][col - 1]
-            top_left = state[row + 1][col - 1]
-            top = state[row + 1][col]
-            top_right = state[row + 1][col + 1]
-            right = state[row][col + 1]
-
-            neighbors = Cell.num_alive([left, top_left, top, top_right, right])
-        elif row == len(state)-1:
-            # Cell is on top edge, but nor a corner
-            right = state[row][col + 1]
-            down_right = state[row - 1][col + 1]
-            down = state[row - 1][col]
-            down_left = state[row - 1][col - 1]
-            left = state[row][col - 1]
-
-            neighbors = Cell.num_alive([right, down_right, down, down_left, left])
+            print('bottom edge')
+            # Cell rendered in bottom edge, but is not a corner
+            check_cells = ((-1, +1),  # top left
+                           (+0, +1),  # top
+                           (+1, +1),  # top right
+                           (+1, +0),  # right
+                           (-1, +0))  # left
         else:
+            print('not an edge')
             # Cell is not on an edge of the board
-            top_left = state[row + 1][col - 1]
-            top = state[row + 1][col]
-            top_right = state[row + 1][col + 1]
-            right = state[row][col + 1]
-            down_right = state[row - 1][col + 1]
-            down = state[row - 1][col]
-            down_left = state[row - 1][col - 1]
-            left = state[row][col - 1]
+            check_cells = ((-1, +1),  # top left
+                           (+0, +1),  # top
+                           (+1, +1),  # top right
+                           (+1, +0),  # right
+                           (+1, -1),  # down right
+                           (+0, -1),  # down
+                           (-1, -1),  # down left
+                           (-1, +0))  # left
 
-            neighbors = Cell.num_alive(
-                [top_left, top, top_right, right, down_right, down, down_left, left])
+        # Make list of neighboring cell objects
+        neighbors = []
+        for t in check_cells:
+            neighbors.append(self.board.cell_at(row+t[1], col+t[0]))
 
-        # Add neighbors property
-        setattr(self, 'neighbors', neighbors)
+        self.neighbors = neighbors
 
     def should_live(self) -> bool:
         """Determine if cell should be alive next game tick."""
 
-        self.set_alive_neighbors(self.board)
+        self.set_alive_neighbors()
+        alive_neighbors = self.num_alive(self.neighbors)
 
         # Assume state doesn't change
         new_state = self.state
@@ -475,15 +470,15 @@ class Cell:
         # Check to see if it should
         if self.is_alive():
             # Cell is alive
-            if self.neighbors < 2:
+            if alive_neighbors < 2:
                 # Die by underpopulation
                 new_state = False
-            elif self.neighbors > 3:
+            elif alive_neighbors > 3:
                 # Die by overpopulation
                 new_state = False
         else:
             # Cell is dead
-            if self.neighbors == 3:
+            if alive_neighbors == 3:
                 # Live by reproduction
                 new_state = True
 
