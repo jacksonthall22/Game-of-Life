@@ -257,13 +257,29 @@ class Board:
 
             print()
 
-    def tick_board(self, tick=1):
+    def tick_board(self, tick=1, flush=True, delay=500, show_ticks=True):
         """Advance the board by given number of game ticks."""
 
+        # Convert milliseconds to seconds
+        delay /= 1000
+
         for i in range(tick):
+            # Update board
             self.advance_all()
 
-        self.tick += tick
+            # Clear terminal if applicable
+            if flush:
+                flush_terminal()
+
+            # Render board
+            self.tick += 1
+            if show_ticks:
+                msg = 'Tick: {}'.format(self.tick)
+            self.render_board(msg)
+
+            # Wait
+            time.sleep(delay)
+        print('Advanced the board by {} ticks.'.format(tick))
 
     def cell_at(self, row, col):
         """Return Cell object at specified row and col."""
@@ -491,24 +507,6 @@ class Cell:
 def game_loop(board: Board, flush=False):
     """Tick the board until user enters "end" sentinel."""
 
-    # # Set up window data
-    # pygame.init()
-    # win = pygame.display.set_mode((500, 500))
-    # pygame.display.set_caption('Game of Life')
-    # millis_per_tick = 100
-    #
-    # # Main game loop
-    # run = True
-    # while run:
-    #     pygame.time.delay(millis_per_tick)
-    #
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             run = False
-    #
-    #     pygame.draw.rect(win, (50, 60, 60), )
-    # pygame.quit()
-
     commands = {'': 'update board to the next tick',
                 'edit': 'edit current state of the board',
                 'end': 'quit the program',
@@ -609,7 +607,44 @@ def prompt_for_board_size() -> (int, int):
     return int(height), int(width)
 
 
+def welcome(flush=True):
+    """Show welcome message."""
+
+    # Os will be living cells, spaces to dead cells
+    welcome_art = [
+        '                                                                      ',
+        '                                                                      ',
+        '   OOOOO OOOOO O   O OOOOO    OOOOO OOOOO   O     OOOOO OOOOO OOOOO   ',
+        '   O     O   O OO OO O        O   O O       O       O   O     O       ',
+        '   O  OO OOOOO O O O OOOO     O   O OOOO    O       O   OOOO  OOOO    ',
+        '   O   O O   O O   O O        O   O O       O       O   O     O       ',
+        '   OOOOO O   O O   O OOOOO    OOOOO O       OOOOO OOOOO O     OOOOO   ',
+        '                                                                      ',
+        '                                                                      '
+    ][::-1]
+
+    print(welcome_art)
+    time.sleep(3)
+
+    # Create the board the state from welcome_art
+    welcome_board = Board(0, len(welcome_art), len(welcome_art[0]))
+    for row in range(len(welcome_art)-1, -1, -1):
+        for col in range(len(welcome_art[0])):
+            if welcome_art[row][col] == 'O':
+                welcome_board.cell_at(row, col).live()
+
+    # Clear terminal before printing board
+    if flush:
+        flush_terminal()
+
+    welcome_board.render_board()
+    time.sleep(2)
+    welcome_board.tick_board(100, True, 100)
+
+
 def main():
+    welcome()
+
     cont = True
     while cont:
         # Get board size
