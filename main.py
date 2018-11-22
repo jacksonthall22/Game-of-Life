@@ -276,6 +276,7 @@ class Board:
 
             # Render board
             self.tick += 1
+            msg = ''
             if show_ticks:
                 msg = 'Tick: {}'.format(self.tick)
             self.render_board(msg)
@@ -626,9 +627,6 @@ def welcome(flush=True):
         '                                                                      '
     ][::-1]
 
-    print(welcome_art)
-    time.sleep(3)
-
     # Create the board the state from welcome_art
     welcome_board = Board(0, len(welcome_art), len(welcome_art[0]))
     for row in range(len(welcome_art)-1, -1, -1):
@@ -642,7 +640,7 @@ def welcome(flush=True):
 
     welcome_board.render_board()
     time.sleep(2)
-    welcome_board.tick_board(100, True, 100)
+    welcome_board.tick_board(100, True, 100, False)
 
 
 def main():
