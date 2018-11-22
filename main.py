@@ -1,4 +1,5 @@
 import re
+import os
 from typing import List
 # import pygame
 
@@ -161,7 +162,7 @@ class Board:
             else:
                 print('\nInvalid command. ', end='')
 
-    def render_board(self):
+    def render_board(self, msg=''):
         """Render the current state of the board."""
 
         # Top of the board
@@ -176,7 +177,13 @@ class Board:
                 print(self.cell_at(row, col), end='')
 
             # Right edge of the board
-            print(' │')
+            print(' │', end='')
+
+            # Print message on top row if it exists
+            if row == self.width-1 and msg != '':
+                print('    {}'.format(msg))
+            else:
+                print()
 
         # Bottom of the board
         print('└' + '─' * (self.width*2 + 2) + '┘')
@@ -232,8 +239,9 @@ class Board:
         """
 
         return all(isinstance(num, int) for num in coord) \
-               and self.row_in_range(coord[0]) \
-               and self.col_in_range(coord[1])
+            and self.row_in_range(coord[0]) \
+            and self.col_in_range(coord[1])
+
 
 class Cell:
 
