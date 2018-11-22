@@ -248,7 +248,7 @@ class Board:
         """Advance the board by given number of game ticks."""
 
         for i in range(tick):
-            self.state = self.advance_all()
+            self.advance_all()
 
         self.tick += tick
 
@@ -263,6 +263,7 @@ class Board:
         # Create a deep copy of the current Board object
         new_board = copy.deepcopy(self)
 
+        # Update states in the new board where applicable
         for row in range(self.height-1, -1, -1):
             for col in range(self.width):
                 # The cell object at the current board position
@@ -274,7 +275,10 @@ class Board:
                 else:
                     new_board.cell_at(row, col).die()
 
-        return new_board.state
+        self.state = copy.deepcopy(new_board.state)
+
+        # Get rid of the temporary board
+        del new_board
 
     def row_in_range(self, row: int) -> bool:
         """True if row is in range of the board height."""
