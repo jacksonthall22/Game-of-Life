@@ -182,10 +182,13 @@ class Board:
         # Middle of the board
         for row in range(self.height-1, -1, -1):
             # Print row coordinates if applicable
-            if show_coords and row % 5 == 0:
-                print('{} '.format(str(row).rjust(2)), end='')
+            if show_coords:
+                if row % 5 == 0:
+                    print('{} '.format(str(row).rjust(2)), end='')
+                else:
+                    print('   ', end='')
             else:
-                print('   ', end='')
+                print('  ', end='')
 
             # Left edge of the board
             print('│ ', end='')
@@ -476,6 +479,8 @@ class Cell:
 
 
 def game_loop(board: Board):
+    """Tick the board until user enters "end" sentinel."""
+
     # # Set up window data
     # pygame.init()
     # win = pygame.display.set_mode((500, 500))
