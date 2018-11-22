@@ -25,13 +25,17 @@ class Board:
         s += '\n\ttick: {}'.format(self.tick)
         s += '\n\theight: {}'.format(self.height)
         s += '\n\twidth: {}'.format(self.width)
-        s += '\n\tstate: <{}>'.format(hex(id(self.state)))
-        for row in self.state:
-            s += '\n\t\t<{} : {}>'.format(hex(id(row)), )
-            s += ','.join(['<{}>'.format(self.state[row][col]) for col in row])
-            s += '>'
-        for row in self.state:
-            s += '\n\t\t{}'.format(row)
+        s += '\n\tstate: <state:List {} :\n\t\t'.format(hex(id(self.state)))
+        # Print ids of all cell objects
+        for row in range(self.height):
+            s += '\n\t\t<row:List {} : '.format(hex(id(self.state[row])))
+            s += ', '.join(['\n\t\t\t<cell:Cell {}>'.format(hex(id(self.cell_at(row, col))))
+                            for col in range(self.width)])
+            s += '\n\t\t>'
+            if row != self.height-1:
+                s += ','
+
+        s += '>'
 
         return s
 
