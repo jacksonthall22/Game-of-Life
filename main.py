@@ -156,7 +156,7 @@ class Board:
                 #                 self.cell_at(row, col).live()
                 #                 print('\tKilled cell at ({}, {})'.format(col, row))
             elif cmd == 'show':
-                self.render_board('[Board Editing Mode]')
+                self.render_board('[Board Editing Mode]', True)
                 print()
             elif cmd == 'end':
                 cont = False
@@ -196,7 +196,7 @@ class Board:
             # Print the cell
             for col in range(self.width):
                 # Creates checkerboard effect
-                dark = (row + col) % 2 == 0
+                dark = (row + col) % 2 == 1
 
                 # Print the state of the cell
                 self.cell_at(row, col).render_cell(dark, end='')
