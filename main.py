@@ -39,13 +39,12 @@ class Board:
 
         return s
 
-    def set_board_states(self):
+    def set_board_states(self, flush=False):
         """Prompt user to set alive cells in board."""
 
         commands = {'live': 'turn on cells in the board',
                     'die': 'turn off cells in the board',
                     'clear': 'clear the board',
-                    'show': 'show the state of the board',
                     'done': 'done setting up board',
                     'help': 'list available commands'}
 
@@ -96,11 +95,12 @@ class Board:
 
             return valid_tuples, invalid_tuples
 
+        # Show the board
+        self.render_board('[Board Editing Mode]', True, True)
+
+        # Change the board while user wants to
         cont = True
         while cont:
-            # Show the board
-            self.render_board('[Board Editing Mode]', True, True)
-
             # Get command
             cmd = input('Enter a command or type help for more info:\n>>> ').lower()
 
@@ -116,7 +116,7 @@ class Board:
                     try:
                         valid_coords, invalid_coords = separate_valids(coords)
                     except ValueError as e:
-                        # Coords was not entered in a valid format
+                        # Coords were not entered in a valid format
                         print('\n{} '.format(e), end='')
                     else:
                         # Entered coords are of integers and are in range
@@ -133,7 +133,7 @@ class Board:
                                 if self.cell_at(row, col).is_dead():
                                     print('\tCell at ({}, {}) was already dead.'.format(col, row))
                                 else:
-                                    self.cell_at(row, col).live()
+                                    self.cell_at(row, col).die()
                                     print('\tKilled cell at ({}, {}).'.format(col, row))
                         if len(invalid_coords) != 0:
                             # Print the invalid coords
@@ -143,13 +143,26 @@ class Board:
                                 col, row = tup[0], tup[1]
                                 print('\t\t({}, {})'.format(col, row))
 
+                        # Clear the terminal if applicable
+                        if flush:
+                            flush_terminal()
+
+                        # Show the board
+                        self.render_board('[Board Editing Mode]', True, True)
+
+                        # Break from the loop
                         cont_ = False
+
                 print()
             elif cmd == 'clear':
                 self.clear_board()
-            elif cmd == 'show':
+
+                # Clear the terminal if applicable
+                if flush:
+                    flush_terminal()
+
+                # Show the board
                 self.render_board('[Board Editing Mode]', True, True)
-                print()
             elif cmd == 'done':
                 cont = False
                 print()
@@ -606,9 +619,6 @@ def main():
         board = Board(0, height, width)
 
         # Set up the board
-        print('Setting up board...')
-        # time.sleep(1)
-
         board.set_board_states()
 
         # Ticks until user enters 'end'
