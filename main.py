@@ -179,7 +179,7 @@ class Board:
         # Top of the board
         print('  ' + '┌' + '─' * (self.width*2 + 2) + '┐')
 
-        # Middle of the board
+        # Print middle of the board
         for row in range(self.height-1, -1, -1):
             # Print row coordinates if applicable
             if show_coords:
@@ -190,13 +190,18 @@ class Board:
             else:
                 print('  ', end='')
 
-            # Left edge of the board
+            # Print left edge of the board
             print('│ ', end='')
-            for col in range(self.width):
-                # Print the state of the cell
-                print(self.cell_at(row, col), end='')
 
-            # Right edge of the board
+            # Print the cell
+            for col in range(self.width):
+                # Creates checkerboard effect
+                dark = (row + col) % 2 == 0
+
+                # Print the state of the cell
+                self.cell_at(row, col).render_cell(dark, end='')
+
+            # Print right edge of the board
             print(' │', end='')
 
             # Print message on top row if it exists
@@ -205,11 +210,11 @@ class Board:
             else:
                 print()
 
-        # Extra left padding if showing coordinates
+        # Print extra left padding if showing coordinates
         if show_coords:
             print(' ', end='')
 
-        # Bottom of the board
+        # Print bottom of the board
         print('  ' + '└' + '─' * (self.width*2 + 2) + '┘')
 
         # Print column coords if applicable
@@ -224,17 +229,17 @@ class Board:
 
                 # First and second digits of numbers
                 top_line = ''
-                bottom_line = ' '
+                bottom_line = ''
                 for i in range(0, self.width, 5):
                     top_line += '{0:<10}'.format(str(i).ljust(2)[0])
                     bottom_line += '{0:<10}'.format(str(i).ljust(2)[1])
                 print('     ' + top_line)
-                print('     ' + bottom_line)
+                print('      ' + bottom_line)
             else:
                 # Print padding
                 print('     ', end='')
 
-                # Print numbers normally
+                # Print numbers normally (horizontally)
                 for i in range(0, self.width, 5):
                     print('{0:<10}'.format(i))
 
@@ -300,6 +305,7 @@ class Cell:
     # Characters used to print alive and dead cell states
     alive_char = '█'
     dead_char = '░'
+    dead_char_dark = '▒'
 
     def __init__(self, state: bool, row, col, board: Board):
         """Create a cell object."""
@@ -309,13 +315,19 @@ class Cell:
         self.col = col
         self.board = board
 
-    def __str__(self) -> str:
-        """Print character showing aliveness of the given cell."""
+    def render_cell(self, dark=False, end=''):
+        """Print character showing aliveness of the given cell.
+
+        Optional arg dark returns darker character for dead cells.
+
+        """
 
         if self.is_alive():
-            return Cell.alive_char * 2
+            print(Cell.alive_char*2, end=end)
+        elif dark:
+            print(Cell.dead_char_dark*2, end=end)
         else:
-            return Cell.dead_char * 2
+            print(Cell.dead_char*2, end=end)
 
     def is_alive(self) -> bool:
         """Return True if cell is alive."""
@@ -501,7 +513,7 @@ def game_loop(board: Board):
     cont = True
     while cont:
         # Flush the terminal
-        os.system('cls||clear')
+        # os.system('cls||clear')
 
         # Render the board and wait
         board.render_board('Tick: {}'.format(board.tick))
