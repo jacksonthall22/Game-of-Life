@@ -264,13 +264,13 @@ class Board:
 
             print()
 
-    def tick_board(self, tick=1, flush=True, delay=500, show_ticks=True):
+    def tick_board(self, num_ticks=1, flush=True, delay=0, show_ticks=True):
         """Advance the board by given number of game ticks."""
 
         # Convert milliseconds to seconds
         delay /= 1000
 
-        for i in range(tick):
+        for i in range(num_ticks):
             # Update board
             self.advance_all()
 
@@ -287,7 +287,11 @@ class Board:
 
             # Wait
             time.sleep(delay)
-        print('Advanced the board by {} ticks.'.format(tick))
+
+        if show_ticks:
+            print('Advanced the board by {} ticks.\n'.format(num_ticks))
+        else:
+            print()
 
     def cell_at(self, row, col):
         """Return Cell object at specified row and col."""
