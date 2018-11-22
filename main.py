@@ -42,13 +42,13 @@ class Board:
 
         return s
 
-    def set_board_states(self, flush=False):
+    def set_board_states(self, flush=False, msg=''):
         """Prompt user to set alive cells in board."""
 
         commands = {'live': 'turn on cells in the board',
                     'die': 'turn off cells in the board',
                     'clear': 'clear the board',
-                    'done': 'done setting up board',
+                    'done': 'exit board setup mode',
                     'help': 'list available commands'}
 
         def valid_cell_format(s):
@@ -100,6 +100,10 @@ class Board:
 
         # Show the board
         self.render_board('[Board Editing Mode]', True, True)
+
+        # Show message if it exists
+        if msg != '':
+            print(msg)
 
         # Change the board while user wants to
         cont = True
@@ -512,6 +516,7 @@ def game_loop(board: Board, flush=False):
     """Tick the board until user enters "end" sentinel."""
 
     commands = {'': 'update board to the next tick',
+                'tick': 'update the board by some number of ticks',
                 'edit': 'edit current state of the board',
                 'end': 'quit the program',
                 'help': 'list available commands'}
@@ -537,6 +542,16 @@ def game_loop(board: Board, flush=False):
         elif prompt == 'edit':
             board.set_board_states()
             print()
+        elif prompt == 'tick':
+            num_ticks = input('Enter number of ticks:\n>>> ')
+
+            # Validate number of ticks
+            while not num_ticks.isdigit():
+                num_ticks = input('Invalid number. Enter number of ticks:\n>>> ')
+            num_ticks = int(num_ticks)
+
+            # Tick the board
+            board.tick_board(num_ticks, True, 100, True)
         elif prompt == 'end':
             cont = False
             print()
@@ -611,7 +626,7 @@ def prompt_for_board_size() -> (int, int):
     return int(height), int(width)
 
 
-def welcome(flush=True):
+def welcome():
     """Show welcome message."""
 
     # Os will be living cells, spaces to dead cells
@@ -635,12 +650,14 @@ def welcome(flush=True):
                 welcome_board.cell_at(row, col).live()
 
     # Clear terminal before printing board
-    if flush:
-        flush_terminal()
+    flush_terminal()
 
     welcome_board.render_board()
     time.sleep(2)
-    welcome_board.tick_board(100, True, 100, False)
+    welcome_board.tick_board(110, True, 50, False)
+
+    time.sleep(0.5)
+    print('Welcome to the Game of Life! Let\'s set up your board.\n')
 
 
 def main():
@@ -652,10 +669,14 @@ def main():
         height, width = prompt_for_board_size()
 
         # Make the board
+        print('Creating your board...')
         board = Board(0, height, width)
 
-        # Set up the board
-        board.set_board_states()
+        time.sleep(1)
+
+        # User can set up the board
+        flush_terminal()
+        board.set_board_states(True, 'Board created!\n')
 
         # Ticks until user enters 'end'
         game_loop(board, True)
