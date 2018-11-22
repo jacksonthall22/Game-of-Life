@@ -33,52 +33,133 @@ class Board:
 
         commands = {'live': 'turn on cells in the board',
                     'die': 'turn off cells in the board',
+                    'show': 'show the state of the board',
                     'end': 'done setting up board',
                     'help': 'list available commands'}
 
+        def valid_cell_format(s):
+            """Determine if s follows the format "(a, b), (c, d), ... ".
+
+            Credit to Patrick Artner:
+                https://stackoverflow.com/questions/53419606/validating-user-input-with-regex
+
+            """
+
+            return re.match(r'^\s*([^,]+,[^,]\)\s*(?:,\s*\([^,]+,[^,]\))*)\s*$', s)
+
+        def separate_valids(s):
+            """Return 2 sets of valid and invalid coordinates in s respectively.
+
+            Credit to Patrick Artner:
+                https://stackoverflow.com/questions/53419606/validating-user-input-with-regex
+
+            """
+
+            # Remove all spaces from user input
+            s = s.replace(" ", "")
+
+            # Check if input is a proper list of tuples
+            if not valid_cell_format(s):
+                raise ValueError('Could not parse input.')
+
+            # Convert string input like "(1, 4), (a, 7), (-3, 3), (3, 3)"
+            # to a list like ['1,4', 'a,7', '-3,3', '3,3']
+            stripped_coord = [j.lstrip("(") for j in s.replace(" ", "").rstrip(")").split("),")]
+
+            # Convert ['1,4', 'a,7', '-3,3', '3,3']
+            # to [(1, 4), ('a', 7), ('-3', 3), (3, 3)]
+            all_tuples = [tuple(map(try_int, nums.split(","))) for nums in stripped_coord]
+
+            # Create sets that hold valid and invalid tuples
+            valid_tuples = []
+            invalid_tuples = []
+            for j in all_tuples:
+                # Adds tuples only if not duplicates
+                if self.coord_in_range(j):
+                    if j not in valid_tuples:
+                        valid_tuples.append(j)
+                else:
+                    if j not in invalid_tuples:
+                        invalid_tuples.append(j)
+
+            return valid_tuples, invalid_tuples
+
         cont = True
         while cont:
-            cmd = input('\nEnter a command or type help for help:\n>>> ').lower()
+            cmd = input('Enter a command or type help for help:\n>>> ').lower()
 
             if cmd in ['live', 'die']:
-                coords = input('Enter cells to {} as (x,y) coordinates separated by spaces:'
-                               '\n>>> '.format(cmd))
+                print()
 
-                # Make each entered cell alive
-                for tuple_str in coords.split():
-                    [col, row] = [num for num in tuple_str[1:len(tuple_str)-1].split(',')]
-                    print('test col, row: {}, {}'.format(col, row))
+                cont_ = True
+                while cont_:
+                    coords = input('Enter cells to {} as (x,y) coordinates separated by spaces:'
+                                   '\n>>> '.format(cmd))
+
                     try:
-                        # Ensure col, row are integers
-                        col = int(col)
-                        row = int(row)
-                    except ValueError:
-                        # Cells are non-integers
-                        print('\tCell ({},{}) invalid: coordinates must be integers.'
-                              ''.format(col, row))
+                        valid_coords, invalid_coords = separate_valids(coords)
+                    except ValueError as e:
+                        # Coords was not entered in a valid format
+                        print('\n{} '.format(e), end='')
                     else:
-                        if not 0 <= col < self.width and not 0 <= row < self.height:
-                            # Coords are integers but out of range
-                            print('\tCell ({},{}) invalid: coordinates are out of range.'
-                                  ''.format(col, row))
-                        else:
-                            # Cells are integers and in range
+                        # Entered coords are of integers and are in range
+                        # Print the valid coords
+                        for tup in valid_coords:
+                            col, row = tup[0], tup[1]
                             if cmd == 'live':
                                 self.cell_at(row, col).live()
                                 print('\tRevived cell at ({}, {}).'.format(col, row))
                             else:
                                 self.cell_at(row, col).live()
                                 print('\tKilled cell at ({}, {})'.format(col, row))
+                        if len(invalid_coords) != 0:
+                            # Print the invalid coords
+                            print('\tThe following coordinates were invalid '
+                                  'and were left unchanged:')
+                            for tup in invalid_coords:
+                                col, row = tup[0], tup[1]
+                                print('\t\t({}, {})'.format(col, row))
+
+                        cont_ = False
+                print()
+                # # Make each entered cell alive
+                # for tuple_str in coords.split():
+                #     [col, row] = [num for num in tuple_str[1:len(tuple_str)-1].split(',')]
+                #     print('test col, row: {}, {}'.format(col, row))
+                #     try:
+                #         # Ensure col, row are integers
+                #         col = int(col)
+                #         row = int(row)
+                #     except ValueError:
+                #         # Cells are non-integers
+                #         print('\tCell ({},{}) invalid: coordinates must be integers.'
+                #               ''.format(col, row))
+                #     else:
+                #         if not 0 <= col < self.width and not 0 <= row < self.height:
+                #             # Coords are integers but out of range
+                #             print('\tCell ({},{}) invalid: coordinates are out of range.'
+                #                   ''.format(col, row))
+                #         else:
+                #             # Cells are integers and in range
+                #             if cmd == 'live':
+                #                 self.cell_at(row, col).live()
+                #                 print('\tRevived cell at ({}, {}).'.format(col, row))
+                #             else:
+                #                 self.cell_at(row, col).live()
+                #                 print('\tKilled cell at ({}, {})'.format(col, row))
+            elif cmd == 'show':
+                self.render_board()
+                print()
             elif cmd == 'end':
                 cont = False
+                print()
             elif cmd == 'help':
                 print('\tCommands:')
                 for i in commands:
                     print('\t\t{} - {}'.format(i, commands[i]))
+                print()
             else:
-                print('Invalid command. ', end='')
-
-            print()
+                print('\nInvalid command. ', end='')
 
     def render_board(self):
         """Render the current state of the board."""
@@ -143,7 +224,12 @@ class Board:
         return 0 <= col < self.width
 
     def coord_in_range(self, coord: tuple) -> bool:
-        """True if items in given (col, row) coordinate contains valid indices of the board."""
+        """True if items in given (col, row) coordinate contains valid indices of the board.
+
+        Credit to Patrick Artner:
+            https://stackoverflow.com/questions/53419606/validating-user-input-with-regex
+
+        """
 
         return all(isinstance(num, int) for num in coord) \
                and self.row_in_range(coord[0]) \
