@@ -40,6 +40,7 @@ class Board:
 
         commands = {'live': 'turn on cells in the board',
                     'die': 'turn off cells in the board',
+                    'clear': 'clear the board',
                     'show': 'show the state of the board',
                     'end': 'done setting up board',
                     'help': 'list available commands'}
@@ -135,31 +136,8 @@ class Board:
 
                         cont_ = False
                 print()
-                # # Make each entered cell alive
-                # for tuple_str in coords.split():
-                #     [col, row] = [num for num in tuple_str[1:len(tuple_str)-1].split(',')]
-                #     print('test col, row: {}, {}'.format(col, row))
-                #     try:
-                #         # Ensure col, row are integers
-                #         col = int(col)
-                #         row = int(row)
-                #     except ValueError:
-                #         # Cells are non-integers
-                #         print('\tCell ({},{}) invalid: coordinates must be integers.'
-                #               ''.format(col, row))
-                #     else:
-                #         if not 0 <= col < self.width and not 0 <= row < self.height:
-                #             # Coords are integers but out of range
-                #             print('\tCell ({},{}) invalid: coordinates are out of range.'
-                #                   ''.format(col, row))
-                #         else:
-                #             # Cells are integers and in range
-                #             if cmd == 'live':
-                #                 self.cell_at(row, col).live()
-                #                 print('\tRevived cell at ({}, {}).'.format(col, row))
-                #             else:
-                #                 self.cell_at(row, col).live()
-                #                 print('\tKilled cell at ({}, {})'.format(col, row))
+            elif cmd == 'clear':
+                self.clear_board()
             elif cmd == 'show':
                 self.render_board('[Board Editing Mode]', True)
                 print()
@@ -173,6 +151,13 @@ class Board:
                 print()
             else:
                 print('\nInvalid command. ', end='')
+
+    def clear_board(self):
+        """Kill all cell objects in self."""
+
+        for row in range(self.height):
+            for col in range(self.width):
+                self.cell_at(row, col).die()
 
     def render_board(self, msg='', show_coords=False):
         """Render the current state of the board."""
