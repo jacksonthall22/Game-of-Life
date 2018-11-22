@@ -46,7 +46,7 @@ class Board:
                     'die': 'turn off cells in the board',
                     'clear': 'clear the board',
                     'show': 'show the state of the board',
-                    'end': 'done setting up board',
+                    'done': 'done setting up board',
                     'help': 'list available commands'}
 
         def valid_cell_format(s):
@@ -98,8 +98,13 @@ class Board:
 
         cont = True
         while cont:
+            # Show the board
+            self.render_board('[Board Editing Mode]', True, True)
+
+            # Get command
             cmd = input('Enter a command or type help for more info:\n>>> ').lower()
 
+            # Execute command
             if cmd in ['live', 'die']:
                 print()
 
@@ -143,15 +148,15 @@ class Board:
             elif cmd == 'clear':
                 self.clear_board()
             elif cmd == 'show':
-                self.render_board('[Board Editing Mode]', True)
+                self.render_board('[Board Editing Mode]', True, True)
                 print()
-            elif cmd == 'end':
+            elif cmd == 'done':
                 cont = False
                 print()
             elif cmd == 'help':
                 print('\tCommands:')
                 for i in commands:
-                    print('\t\t{} - {}'.format(i, commands[i]))
+                    print('\t\t"{}" - {}'.format(i, commands[i]))
                 print()
             else:
                 print('\nInvalid command. ', end='')
@@ -163,7 +168,7 @@ class Board:
             for col in range(self.width):
                 self.cell_at(row, col).die()
 
-    def render_board(self, msg='', show_coords=False):
+    def render_board(self, msg='', show_coords=False, checker=False):
         """Render the current state of the board."""
 
         # Extra left padding if showing coordinates
@@ -189,8 +194,8 @@ class Board:
 
             # Print the cell
             for col in range(self.width):
-                # Creates checkerboard effect
-                dark = (row + col) % 2 == 1
+                # Creates checkerboard effect if applicable
+                dark = (row + col) % 2 == 1 and checker
 
                 # Print the state of the cell
                 self.cell_at(row, col).render_cell(dark, end='')
@@ -199,7 +204,7 @@ class Board:
             print(' │', end='')
 
             # Print message on top row if it exists
-            if row == self.width-1 and msg != '':
+            if row == self.height-1 and msg != '':
                 print('    {}'.format(msg))
             else:
                 print()
@@ -235,7 +240,7 @@ class Board:
 
                 # Print numbers normally (horizontally)
                 for i in range(0, self.width, 5):
-                    print('{0:<10}'.format(i))
+                    print('{0:<10}'.format(i), end='')
 
             print()
 
