@@ -532,13 +532,16 @@ def game_loop(board: Board, flush=False):
                 'help': 'list available commands'}
 
     cont = True
+    refresh_board = True
     while cont:
-        # Clear the terminal if applicable
-        if flush:
-            flush_terminal()
+        if refresh_board:
+            # Clear the terminal if applicable
+            if flush:
+                flush_terminal()
 
-        # Render the board and wait
-        board.render_board('[GAME OF LIFE]  Tick: {}'.format(board.tick))
+            # Render the board and wait
+            board.render_board('[GAME OF LIFE]  Tick: {}'.format(board.tick))
+
         prompt = input('Press enter to continue or type help for more info:\n>>> ').lower().strip()
 
         # Validate command
@@ -548,11 +551,18 @@ def game_loop(board: Board, flush=False):
 
         # Execute command
         if prompt == '':
+            # Tick board by 1
             board.tick_board()
+
+            refresh_board = True
         elif prompt == 'edit':
+            # Edit state of the board
             board.set_board_states()
             print()
+
+            refresh_board = True
         elif prompt == 'tick':
+            # Tick the board given number of times
             num_ticks = input('Enter number of ticks:\n>>> ')
 
             # Validate number of ticks
@@ -562,10 +572,14 @@ def game_loop(board: Board, flush=False):
 
             # Tick the board
             board.tick_board(num_ticks, True, 100, True)
+
+            refresh_board = True
         elif prompt == 'end':
+            # Break out of game loop
             cont = False
             print()
         elif prompt == 'help':
+            # Show available commands
             print('\tCommands:')
             for i in commands:
                 if i == '':
@@ -573,6 +587,8 @@ def game_loop(board: Board, flush=False):
                 else:
                     print('\t\t{} - {}'.format(i, commands[i]))
             print()
+
+            refresh_board = False
 
 
 def try_int(s: str):
