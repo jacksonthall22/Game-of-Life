@@ -99,7 +99,7 @@ class Board:
             return valid_tuples, invalid_tuples
 
         # Show the board
-        self.render_board('[Board Editing Mode]', True, True)
+        self.render_board('[Board Editing Mode]', '', True, True)
 
         # Show message if it exists
         if msg != '':
@@ -125,37 +125,41 @@ class Board:
                     except ValueError as e:
                         # Coords were not entered in a valid format
                         print('\n{} '.format(e), end='')
+
                     else:
                         # Entered coords are of integers and are in range
                         # Print the valid coords
+                        msg_below = ''
                         for tup in valid_coords:
                             col, row = tup[0], tup[1]
                             if cmd == 'live':
                                 if self.cell_at(row, col).is_alive():
-                                    print('\tCell at ({}, {}) was already alive.'.format(col, row))
+                                    msg_below += '\tCell at ({}, {}) was already ' \
+                                                'alive.\n'.format(col, row)
                                 else:
                                     self.cell_at(row, col).live()
-                                    print('\tRevived cell at ({}, {}).'.format(col, row))
+                                    msg_below += '\tRevived cell at ({}, {}).\n'.format(col, row)
                             else:
                                 if self.cell_at(row, col).is_dead():
-                                    print('\tCell at ({}, {}) was already dead.'.format(col, row))
+                                    msg_below += '\tCell at ({}, {}) was already ' \
+                                                'dead.\n'.format(col, row)
                                 else:
                                     self.cell_at(row, col).die()
-                                    print('\tKilled cell at ({}, {}).'.format(col, row))
+                                    msg_below += '\tKilled cell at ({}, {}).\n'.format(col, row)
                         if len(invalid_coords) != 0:
                             # Print the invalid coords
-                            print('\tThe following coordinates were invalid '
-                                  'and were left unchanged:')
+                            msg_below += '\n\tThe following coordinates were invalid:'
                             for tup in invalid_coords:
                                 col, row = tup[0], tup[1]
-                                print('\t\t({}, {})'.format(col, row))
+                                msg_below += '\n\t\t({}, {})'.format(col, row)
+                            msg_below += '\n'
 
                         # Clear the terminal if applicable
                         if flush:
                             flush_terminal()
 
                         # Show the board
-                        self.render_board('[Board Editing Mode]', True, True)
+                        self.render_board('[Board Editing Mode]', msg_below, True, True)
 
                         # Break from the loop
                         cont_ = False
@@ -169,7 +173,7 @@ class Board:
                     flush_terminal()
 
                 # Show the board
-                self.render_board('[Board Editing Mode]', True, True)
+                self.render_board('[Board Editing Mode]', '', True, True)
             elif cmd == 'done':
                 cont = False
                 print()
@@ -188,7 +192,7 @@ class Board:
             for col in range(self.width):
                 self.cell_at(row, col).die()
 
-    def render_board(self, msg='', show_coords=False, checker=False):
+    def render_board(self, msg_side='', msg_below='', show_coords=False, checker=False):
         """Render the current state of the board."""
 
         # Extra left padding if showing coordinates
@@ -224,8 +228,8 @@ class Board:
             print(' │', end='')
 
             # Print message on top row if it exists
-            if row == self.height-1 and msg != '':
-                print('    {}'.format(msg))
+            if row == self.height-1 and msg_side != '':
+                print('    {}'.format(msg_side))
             else:
                 print()
 
@@ -263,6 +267,8 @@ class Board:
                     print('{0:<10}'.format(i), end='')
 
             print()
+        if msg_below != '':
+            print(msg_below, end='')
 
     def tick_board(self, num_ticks=1, flush=True, delay=0, show_ticks=True):
         """Advance the board by given number of game ticks."""
