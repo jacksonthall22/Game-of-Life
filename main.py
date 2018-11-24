@@ -623,8 +623,8 @@ def prompt_for_board_size() -> (int, int):
         height = input('Invalid input. Enter board height:\n>>> ')
 
         try:
-            if int(height) > 48:
-                reset_height = input('Boards greater than 48 squares might not fit on your'
+            if int(height) > 40:
+                reset_height = input('Boards greater than 40 squares high might not fit on your'
                                      'screen. Would you like to set the board height to 48'
                                      'squares? (y/n)\n>>> ').lower()
                 while reset_height in ['y', 'n']:
