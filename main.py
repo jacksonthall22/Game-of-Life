@@ -117,7 +117,7 @@ class Board:
 
                 cont_ = True
                 while cont_:
-                    coords = input('Enter cells to {} as (x,y) coordinates separated by spaces:'
+                    coords = input('Enter cells to {} as (x,y) coordinates separated by commas:'
                                    '\n>>> '.format(cmd))
 
                     try:
@@ -542,11 +542,11 @@ def game_loop(board: Board, flush=False):
             # Render the board and wait
             board.render_board('[GAME OF LIFE]  Tick: {}'.format(board.tick))
 
-        prompt = input('Press enter to continue or type help for more info:\n>>> ').lower().strip()
+        prompt = input('Press enter to tick the board or type help for more info:\n>>> ').lower().strip()
 
         # Validate command
         while prompt not in commands:
-            prompt = input('Unknown command. Press enter to continue or type help for '
+            prompt = input('\nUnknown command. Press enter to continue or type help for '
                            'more info:\n>>> ').lower().strip()
 
         # Execute command
