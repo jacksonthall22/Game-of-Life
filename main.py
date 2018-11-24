@@ -570,8 +570,16 @@ def game_loop(board: Board, flush=False):
                 num_ticks = input('Invalid number. Enter number of ticks:\n>>> ')
             num_ticks = int(num_ticks)
 
+            sleep_time = input('Enter milliseconds to pause between each tick (default 100):\n>>> ')
+
+            while not sleep_time.isdigit():
+                sleep_time = input('Invalid number. Enter milliseconds to pause between each tick '
+                                   '(default 100):\n>>> ')
+
+            sleep_time = int(sleep_time)
+
             # Tick the board
-            board.tick_board(num_ticks, True, 100, True)
+            board.tick_board(num_ticks, True, sleep_time, True)
 
             refresh_board = True
         elif prompt == 'end':
