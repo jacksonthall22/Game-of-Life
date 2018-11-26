@@ -62,7 +62,7 @@ class Board:
             return re.match(r'^\s*([^,]+,[^,]+\)\s*(?:,\s*\([^,]+,[^,]+\))*)\s*$', s)
 
         def separate_valids(s):
-            """Return 2 sets of valid and invalid coordinates in s respectively.
+            """Return 2 lists of tuples containing the valid/invalid coordinates in s respectively.
 
             Credit to Patrick Artner:
                 https://stackoverflow.com/questions/53419606/validating-user-input-with-regex
@@ -105,13 +105,13 @@ class Board:
         if msg != '':
             print(msg)
 
-        # Change the board while user wants to
+        # Change the board while the user wants to
         cont = True
         while cont:
-            # Get command
+            # Get user command
             cmd = input('Enter a command or type help for more info:\n>>> ').lower()
 
-            # Execute command
+            # Execute commands
             if cmd in ['live', 'die']:
                 print()
 
@@ -121,6 +121,7 @@ class Board:
                                    '\n>>> '.format(cmd))
 
                     try:
+                        # Get list of coordinates as tuples, like [(1,3),(2,3), ...]
                         valid_coords, invalid_coords = separate_valids(coords)
                     except ValueError as e:
                         # Coords were not entered in a valid format
@@ -173,7 +174,7 @@ class Board:
                     flush_terminal()
 
                 # Show the board
-                self.render_board('[Board Editing Mode]', '', True, True)
+                self.render_board('[Board Editing Mode]', 'Board cleared.\n\n', True, True)
             elif cmd == 'done':
                 cont = False
                 print()
@@ -244,7 +245,7 @@ class Board:
         if show_coords:
             if self.width > 99:
                 # Rewrite this part if this becomes a problem
-                raise ValueError('render_board() cannot currently handle board widths of 3 digits'
+                raise ValueError('render_board() cannot currently handle board widths of 3 digits '
                                  'when printing col coordinates')
 
             if self.width > 9:
@@ -542,7 +543,8 @@ def game_loop(board: Board, flush=False):
             # Render the board and wait
             board.render_board('[GAME OF LIFE]  Tick: {}'.format(board.tick))
 
-        prompt = input('Press enter to tick the board or type help for more info:\n>>> ').lower().strip()
+        prompt = input('\nPress enter to tick the board or type help for more info:\n'
+                       '>>> ').lower().strip()
 
         # Validate command
         while prompt not in commands:
@@ -645,7 +647,7 @@ def prompt_for_board_size() -> (int, int):
         try:
             if int(width) > 48:
                 reset_width = input('Boards greater than 48 squares might not fit on your'
-                                    'screen. Would you like to set the board height to 48'
+                                    'screen. Would you like to set the board width to 48'
                                     'squares? (y/n)\n>>> ').lower()
                 while reset_width in ['y', 'n']:
                     reset_width = input('Enter "y" or "n":\n>>> ')
