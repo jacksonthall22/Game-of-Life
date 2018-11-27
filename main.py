@@ -422,77 +422,18 @@ class Cell:
         assert self.board.row_in_range(self.row)
         assert self.board.col_in_range(self.col)
 
-        # Sets the neighbors to sum depending on whether the cell at state[row][col]
-        # is on one of the 4 edges of the board or is a corner of the board.
-        # NOTE: The board is rendered bottom to top, so state[0] is the row that
-        # will be printed on the bottom.
-        if self.col == 0:
-            # Cell is on left edge
-            if self.row == len(self.board.state)-1:
-                # Cell rendered in top left corner
-                check_cells = ((+1, +0),  # right
-                               (+1, -1),  # down right
-                               (+0, -1))  # down
-            elif self.row == 0:
-                # Cell rendered in bottom left corner
-                check_cells = ((+0, +1),  # top
-                               (+1, +1),  # top right
-                               (+1, +0))  # right
-            else:
-                # Cell is on left edge
-                check_cells = ((+0, +1),  # top
-                               (+1, +1),  # top right
-                               (+1, +0),  # right
-                               (+1, -1),  # down right
-                               (+0, -1))  # down
-        elif self.col == len(self.board.state[0])-1:
-            # Cell is on right edge
-            if self.row == len(self.board.state)-1:
-                # Cell rendered in top right corner
-                check_cells = ((+0, -1),  # down
-                               (-1, -1),  # down left
-                               (-1, +0))  # left
-            elif self.row == 0:
-                # Cell rendered in bottom right corner
-                check_cells = ((-1, +1),  # top left
-                               (+0, +1),  # top
-                               (-1, +0))  # left
-            else:
-                # Cell is on right edge
-                check_cells = ((-1, +1),  # top left
-                               (+0, +1),  # top
-                               (+0, -1),  # down
-                               (-1, -1),  # down left
-                               (-1, +0))  # left
-        elif self.row == len(self.board.state)-1:
-            # Cell rendered in top edge, but is not a corner
-            check_cells = ((+1, +0),  # right
-                           (+1, -1),  # down right
-                           (+0, -1),  # down
-                           (-1, -1),  # down left
-                           (-1, +0))  # left
-        elif self.row == 0:
-            # Cell rendered in bottom edge, but is not a corner
-            check_cells = ((-1, +1),  # top left
-                           (+0, +1),  # top
-                           (+1, +1),  # top right
-                           (+1, +0),  # right
-                           (-1, +0))  # left
-        else:
-            # Cell is not on an edge of the board
-            check_cells = ((-1, +1),  # top left
-                           (+0, +1),  # top
-                           (+1, +1),  # top right
-                           (+1, +0),  # right
-                           (+1, -1),  # down right
-                           (+0, -1),  # down
-                           (-1, -1),  # down left
-                           (-1, +0))  # left
-
-        # Make list of neighboring cell objects
+        # Create the list of neighboring cell objects, top-to-bottom and left-to-right
         neighbors = []
-        for t in check_cells:
-            neighbors.append(self.board.cell_at(self.row+t[1], self.col+t[0]))
+        for try_row in [-1, +0, +1]:
+            for try_col in [-1, +0, +1]:
+                # Skip the cell itself, (+0, +0)
+                if not try_row == try_col == 0:
+                    # Add the neighboring cell
+                    # When self.row + try_row == self.board.height,
+                    # (self.row+try_row) % self.board.height == 0.
+                    # This creates the toroidal board wrapping effect.
+                    neighbors += self.board.cell_at((self.row+try_row) % self.board.height,
+                                                    (self.col+try_col) & self.board.height)
 
         self.neighbors = neighbors
 
