@@ -21,6 +21,11 @@ class Board:
         self.width = width
         self.state = state
 
+        # Set the Board's Cell's neighbors after self.state is initialized
+        for row in range(height):
+            for col in range(width):
+                self.cell_at(row, col).set_neighbors()
+
     def __str__(self):
         """Display relevant metadata for Board objects."""
 
@@ -192,6 +197,29 @@ class Board:
         for row in range(self.height):
             for col in range(self.width):
                 self.cell_at(row, col).die()
+
+    @staticmethod
+    def format_board(state_list: List[str]):
+        """Return a 2D list of alive/dead Cells corresponding to 1s/0s in strings in state_list."""
+
+        # state_list must not be empty and all its elements must be
+        # strings of equal nonzero length containing "1"s where cells
+        # in the returned state should be alive (and zeros where
+        # they should be dead to follow convention).
+        assert len(state_list) > 0, '[ERROR] Board.format_board() called with invalid ' \
+                                    'with empty state_list argument'
+        assert all([len(i) == len(state_list[0]) for i in state_list]), \
+            '[ERROR] Board.format_board() called with state_list argument with elements ' \
+            'of differing lengths'
+        assert len(state_list[0]) > 0, '[ERROR] Board.format_board() called with strings ' \
+                                       'of length 0'
+
+        # Create the list of Cell objects
+        new_state = [[Cell(state_list[row][col] == '1', row, col)
+                      for col in range(len(state_list[0]))]
+                     for row in range(len(state_list))]
+
+        return new_state
 
     def render_board(self, msg_side='', msg_below='', show_coords=False, checker=False):
         """Render the current state of the board."""
@@ -366,6 +394,19 @@ class Cell:
         self.col = col
         self.parent_board = parent_board
         self.neighbors = neighbors
+
+    def __str__(self):
+        s = object.__str__(self.parent_board)
+        s += '\nParent parent_board: <__main__.Board object at {}>'.format(hex(id(self.parent_board)))
+        s += '\nPosition: ({}, {})'.format(self.col, self.row)
+        s += '\nState: {}'.format(['DEAD', 'ALIVE'][self.state])
+        try:
+            # Print neighbors if it exists yet
+            s += '\nNeighbors: {{{}}}'.format('\n\t'.join([Cell.__str__(n) for n in self.neighbors]))
+        except NameError:
+            pass
+
+        return s
 
     def render_cell(self, dark=False, end=''):
         """Print character showing aliveness of the given cell.
