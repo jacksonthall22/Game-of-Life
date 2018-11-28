@@ -8,7 +8,7 @@ from typing import List
 
 class Board:
     def __init__(self, tick: int, height, width, state: List[List] = None):
-        """Initialize board object."""
+        """Initialize Board object."""
 
         if state is None:
             state = [[Cell(False, row, col, self) for col in range(width)] for row in range(height)]
@@ -43,12 +43,12 @@ class Board:
         return s
 
     def set_board_states(self, flush=False, msg=''):
-        """Prompt user to set alive cells in board."""
+        """Prompt user to set alive cells in parent_board."""
 
-        commands = {'live': 'turn on cells in the board',
-                    'die': 'turn off cells in the board',
-                    'clear': 'clear the board',
-                    'done': 'exit board setup mode',
+        commands = {'live': 'turn on cells in the parent_board',
+                    'die': 'turn off cells in the parent_board',
+                    'clear': 'clear the parent_board',
+                    'done': 'exit parent_board setup mode',
                     'help': 'list available commands'}
 
         def valid_cell_format(s):
@@ -98,14 +98,14 @@ class Board:
 
             return valid_tuples, invalid_tuples
 
-        # Show the board
+        # Show the parent_board
         self.render_board('[Board Editing Mode]', '', True, True)
 
         # Show message if it exists
         if msg != '':
             print(msg)
 
-        # Change the board while the user wants to
+        # Change the parent_board while the user wants to
         cont = True
         while cont:
             # Get user command
@@ -329,17 +329,17 @@ class Board:
         del new_board
 
     def row_in_range(self, row: int) -> bool:
-        """True if row is in range of the board height."""
+        """Return true if row is in range of the board height."""
 
         return 0 <= row < self.height
 
     def col_in_range(self, col: int) -> bool:
-        """True if col is in range of the board width."""
+        """Return true if col is in range of the board width."""
 
         return 0 <= col < self.width
 
     def coord_in_range(self, coord: tuple) -> bool:
-        """True if items in given (col, row) coordinate contains valid indices of the board.
+        """Return true if items in given (col, row) coordinate contains valid indices of the board.
 
         Credit to Patrick Artner:
             https://stackoverflow.com/questions/53419606/validating-user-input-with-regex
@@ -358,13 +358,13 @@ class Cell:
     dead_char = '░'
     dead_char_dark = '▒'
 
-    def __init__(self, state: bool, row, col, board: Board, neighbors=None):
+    def __init__(self, state: bool, row, col, parent_board: Board = None, neighbors=None):
         """Create a cell object."""
 
         self.state = state
         self.row = row
         self.col = col
-        self.board = board
+        self.parent_board = parent_board
         self.neighbors = neighbors
 
     def render_cell(self, dark=False, end=''):
@@ -411,16 +411,16 @@ class Cell:
 
         self.state = False
 
-    def set_alive_neighbors(self):
-        """Set the number of alive cells adjacent to self."""
+    def set_neighbors(self):
+        """Create the list of cells adjacent to self in any direction."""
 
         # State and values in state must have length
-        assert self.board.width > 0
-        assert self.board.height > 0
+        assert self.parent_board.width > 0
+        assert self.parent_board.height > 0
 
         # Row and col are in bounds
-        assert self.board.row_in_range(self.row)
-        assert self.board.col_in_range(self.col)
+        assert self.parent_board.row_in_range(self.row)
+        assert self.parent_board.col_in_range(self.col)
 
         # Create the list of neighboring cell objects, top-to-bottom and left-to-right
         neighbors = []
@@ -429,35 +429,34 @@ class Cell:
                 # Skip the cell itself, (+0, +0)
                 if not try_row == try_col == 0:
                     # Add the neighboring cell
-                    # When self.row + try_row == self.board.height,
-                    # (self.row+try_row) % self.board.height == 0.
-                    # This creates the toroidal board wrapping effect.
-                    neighbors += self.board.cell_at((self.row+try_row) % self.board.height,
-                                                    (self.col+try_col) & self.board.height)
+                    # NOTE: When self.row + try_row == self.parent_board.height,
+                    # (self.row+try_row) % self.parent_board.height == 0.
+                    # This creates the toroidal parent_board wrapping effect.
+                    neighbors += [self.parent_board.cell_at((self.row + try_row) % self.parent_board.height,
+                                                            (self.col+try_col) % self.parent_board.height)]
 
         self.neighbors = neighbors
 
     def should_live(self) -> bool:
-        """Determine if cell should be alive next game tick."""
+        """Determine and return the correct state of self at the next game tick."""
 
-        self.set_alive_neighbors()
-        alive_neighbors = self.num_alive(self.neighbors)
+        num_alive_neighbors = self.num_alive(self.neighbors)
 
-        # Assume state doesn't change
+        # Assume state doesn't change...
         new_state = self.state
 
-        # Check to see if it should
+        # ...then check to see if it should
         if self.is_alive():
             # Cell is alive
-            if alive_neighbors < 2:
+            if num_alive_neighbors < 2:
                 # Die by underpopulation
                 new_state = False
-            elif alive_neighbors > 3:
+            elif num_alive_neighbors > 3:
                 # Die by overpopulation
                 new_state = False
         else:
             # Cell is dead
-            if alive_neighbors == 3:
+            if num_alive_neighbors == 3:
                 # Live by reproduction
                 new_state = True
 
@@ -465,7 +464,7 @@ class Cell:
 
 
 def game_loop(board: Board, flush=False):
-    """Tick the board until user enters "end" sentinel."""
+    """Tick Board until user enters "end" sentinel."""
 
     commands = {'': 'update board to the next tick',
                 'tick': 'update the board by some number of ticks',
@@ -604,19 +603,19 @@ def prompt_for_board_size() -> (int, int):
 
 
 def welcome():
-    """Show welcome message."""
+    """Show Game of Life welcome message and animation."""
 
-    # Os will be living cells, spaces to dead cells
+    # 1s will be living cells, 0s dead cells
     welcome_art = [
-        '                                                                      ',
-        '                                                                      ',
-        '   OOOOO OOOOO O   O OOOOO    OOOOO OOOOO   O     OOOOO OOOOO OOOOO   ',
-        '   O     O   O OO OO O        O   O O       O       O   O     O       ',
-        '   O  OO OOOOO O O O OOOO     O   O OOOO    O       O   OOOO  OOOO    ',
-        '   O   O O   O O   O O        O   O O       O       O   O     O       ',
-        '   OOOOO O   O O   O OOOOO    OOOOO O       OOOOO OOOOO O     OOOOO   ',
-        '                                                                      ',
-        '                                                                      '
+        '0000000000000000000000000000000000000000000000000000000000000000000000',
+        '0000000000000000000000000000000000000000000000000000000000000000000000',
+        '0001111101111101000101111100001111101111100010000011111011111011111000',
+        '0001000001000101101101000000001000101000000010000000100010000010000000',
+        '0001001101111101010101111000001000101111000010000000100011110011110000',
+        '0001000101000101000101000000001000101000000010000000100010000010000000',
+        '0001111101000101000101111100001111101000000011111011111010000011111000',
+        '0000000000000000000000000000000000000000000000000000000000000000000000',
+        '0000000000000000000000000000000000000000000000000000000000000000000000'
     ][::-1]
 
     # Create the board the state from welcome_art
