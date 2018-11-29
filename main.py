@@ -1,6 +1,7 @@
 import re
 import os
 import time
+import random
 import copy
 from typing import List
 from bitstring import BitArray, CreationError
@@ -17,7 +18,7 @@ class Board:
         """Initialize Board object."""
 
         if state is None:
-            state = [BitArray('0b' + '0' * width) for _ in range(height)]
+            state = copy.deepcopy(self.get_blank_board(height, width))
         else:
             # Confirm height and width are correct if state is defined
             assert len(state) == height
@@ -49,6 +50,7 @@ class Board:
 
         commands = {'live': 'turn on cells in the parent_board',
                     'die': 'turn off cells in the parent_board',
+                    'randomize': 'randomize the cells in the board from a given density',
                     'clear': 'clear the parent_board',
                     'done': 'exit parent_board setup mode',
                     'help': 'list available commands'}
@@ -178,6 +180,35 @@ class Board:
                             _cont = False
 
                 print()
+            elif cmd == 'randomize':
+                print()
+
+                _cont = True
+                while _cont:
+                    density = input('Enter density (percentage of living cells):\n>>> ')
+
+                    try:
+                        density = float(density)
+                    except ValueError:
+                        print('Invalid input. ', end='')
+                    else:
+                        # Input was a float, check if it's in range
+                        if not 0 < density <= 100:
+                            print('Invalid input. Density must be between 0 and 100. '
+                                  '', end='')
+                        else:
+                            print('\tDensity set at {}.'.format(density))
+                            _cont = False
+
+                # Randomize the board
+                time.sleep(1)
+                print('\nRandomizing board...')
+                self.state = Board.get_random_board(self.height, self.width, density)
+                time.sleep(1)
+
+                self.render_board('[Board Editing Mode]',
+                                  'Board randomized with density {}.'.format(density), True, True)
+
             elif cmd == 'clear':
                 self.clear_board()
 
@@ -206,26 +237,55 @@ class Board:
                 self.die(row, col)
 
     @staticmethod
-    def get_board_from_state(state_list: List[str]):
-        """Return a list of BitArrays from list of strings of 1s and 0s."""
+    def get_blank_board(height, width) -> List[BitArray]:
+        """Return a list of BitArrays initialized to 0.
+
+        Arguments:
+            height: Int height of the board to generate
+            width: Int width of the board to generate
+
+        This method is static so a blank board can be
+        generated at instance creation.
+
+        """
 
         # Create the list
-        new_state = []
-        for row in range(len(state_list)):
-            # Will raise CreationError if row is empty or contains
-            # anything except 0s and 1s
-            new_state.append(BitArray('0b' + state_list[row]))
-
-        return new_state
+        return [BitArray('0b' + '0' * width) for _ in range(height)]
 
     @staticmethod
-    def get_blank_board(height, width):
-        """Return a list of BitArrays initialized to 0."""
+    def get_random_board(height, width, density) -> List[BitArray]:
+        """Randomize alive and dead cells in the board.
 
-        # Create the list
+        Arguments:
+            height: Int height of the board to generate
+            width: Int width of the board to generate
+            density: Percent of cells that should be alive (0 < density <= 100)
+
+        This method is static so boards can be instantiated without
+        looping through board twice (once to instantiate to BitArrays
+        of 0s, again to randomize board).
+
+        Credit for random bit generation strategy:
+            https://stackoverflow.com/questions/14324472/random-boolean-by-percentage
+
+        """
+
         new_state = []
+
         for row in range(height):
-            new_state.append(BitArray('0b' + '0'*width))
+            # Create BitArray to hold the row
+            new_state.append(BitArray())
+
+            for col in range(width):
+                # Generate random bit
+                bit = random.uniform(0, 1) < density / 100
+
+                # Add to the BitArray
+                new_state[row].append('0b' + str(int(bit)))
+
+        # Prevent low percentages returning a blank board
+        if new_state == Board.get_blank_board(height, width):
+           return Board.get_random_board(height, width, density)
 
         return new_state
 
@@ -395,7 +455,11 @@ class Board:
         return should_live
 
     def is_alive(self, row, col):
-        """Return true if cell at given coordinates is true."""
+        """Return true if cell at given coordinates is true.
+
+        This is equivalent to is_alive(); included for semantic clarity.
+
+        """
 
         return self.state[row][col]
 
@@ -485,7 +549,7 @@ class Board:
             and self.col_in_range(coord[1])
 
 
-def game_loop(board: Board, flush=False):
+def game_loop(board: Board, flush=True):
     """Tick Board until user enters "end" sentinel."""
 
     commands = {'': 'update board to the next tick',
@@ -521,6 +585,9 @@ def game_loop(board: Board, flush=False):
             refresh_board = True
         elif prompt == 'edit':
             # Edit state of the board
+            if flush:
+                flush_terminal()
+
             board.set_board_states()
             print()
 
@@ -631,25 +698,22 @@ def welcome():
     """Show Game of Life welcome message and animation."""
 
     # Spells 'GAME OF LIFE'
-    welcome_art = [
-        '0000000000000000000000000000000000000000000000000000000000000000000000',
-        '0000000000000000000000000000000000000000000000000000000000000000000000',
-        '0001111101111101000101111100001111101111100010000011111011111011111000',
-        '0001000001000101101101000000001000101000000010000000100010000010000000',
-        '0001001101111101010101111000001000101111000010000000100011110011110000',
-        '0001000101000101000101000000001000101000000010000000100010000010000000',
-        '0001111101000101000101111100001111101000000011111011111010000011111000',
-        '0000000000000000000000000000000000000000000000000000000000000000000000',
-        '0000000000000000000000000000000000000000000000000000000000000000000000'
+    welcome_state = [
+        BitArray('0b' + '0000000000000000000000000000000000000000000000000000000000000000000000'),
+        BitArray('0b' + '0000000000000000000000000000000000000000000000000000000000000000000000'),
+        BitArray('0b' + '0001111101111101000101111100001111101111100010000011111011111011111000'),
+        BitArray('0b' + '0001000001000101101101000000001000101000000010000000100010000010000000'),
+        BitArray('0b' + '0001001101111101010101111000001000101111000010000000100011110011110000'),
+        BitArray('0b' + '0001000101000101000101000000001000101000000010000000100010000010000000'),
+        BitArray('0b' + '0001111101000101000101111100001111101000000011111011111010000011111000'),
+        BitArray('0b' + '0000000000000000000000000000000000000000000000000000000000000000000000'),
+        BitArray('0b' + '0000000000000000000000000000000000000000000000000000000000000000000000')
     ][::-1]
-
-    # Convert welcome_art to a list of BitArray objects
-    welcome_state = Board.get_board_from_state(welcome_art)
 
     time.sleep(0.5)
     print('Welcome to the Game of Life! Let\'s set up your board.\n')
 
-    # Show and animate the board
+    # Render and animate the board
     welcome_board = Board(0, len(welcome_state), len(welcome_state[0]), welcome_state)
     flush_terminal()
     welcome_board.render_board()
@@ -679,7 +743,7 @@ def main():
         board.set_board_states(True, 'Board created!\n')
 
         # Ticks until user enters 'end'
-        game_loop(board, True)
+        game_loop(board)
 
 
 if __name__ == '__main__':
