@@ -3,28 +3,30 @@ import os
 import time
 import copy
 from typing import List
+from bitstring import BitArray, CreationError
 # import pygame
 
 
 class Board:
-    def __init__(self, tick: int, height, width, state: List[List] = None):
+
+    alive_char = '█'
+    dead_char = '░'
+    dead_char_dark = '▒'
+
+    def __init__(self, tick, height, width, state: List[List[BitArray]] = None):
         """Initialize Board object."""
 
         if state is None:
-            state = [[Cell(False, row, col, self) for col in range(width)] for row in range(height)]
+            state = [BitArray('0b' + '0' * width) for _ in range(height)]
         else:
+            # Confirm height and width are correct if state is defined
             assert len(state) == height
-            assert len(state[0]) == width
+            assert all([len(row) == len(state[0]) == width for row in state])
 
         self.tick = tick
         self.height = height
         self.width = width
         self.state = state
-
-        # Set the Board's Cell's neighbors after self.state is initialized
-        for row in range(height):
-            for col in range(width):
-                self.cell_at(row, col).set_neighbors()
 
     def __str__(self):
         """Display relevant metadata for Board objects."""
@@ -33,17 +35,12 @@ class Board:
         s += '\n\ttick: {}'.format(self.tick)
         s += '\n\theight: {}'.format(self.height)
         s += '\n\twidth: {}'.format(self.width)
-        s += '\n\tstate: <state:List {} :\n\t\t'.format(hex(id(self.state)))
-        # Print ids of all cell objects
-        for row in range(self.height):
-            s += '\n\t\t<row:List {} : '.format(hex(id(self.state[row])))
-            s += ', '.join(['\n\t\t\t<cell:Cell {}>'.format(hex(id(self.cell_at(row, col))))
-                            for col in range(self.width)])
-            s += '\n\t\t>'
-            if row != self.height-1:
-                s += ','
-
-        s += '>'
+        s += '\n\tstate:'
+        s += '\n\t\t<'
+        for row in self.state:
+            # Print binary representation of BitArray object
+            s += '\n\t\t\t{}'.format(row.bin)
+        s += '\n\t\t>'
 
         return s
 
@@ -110,7 +107,7 @@ class Board:
         if msg != '':
             print(msg)
 
-        # Change the parent_board while the user wants to
+        # Edit the parent_board while the user wants to
         cont = True
         while cont:
             # Get user command
@@ -120,55 +117,56 @@ class Board:
             if cmd in ['live', 'die']:
                 print()
 
-                cont_ = True
-                while cont_:
-                    coords = input('Enter cells to {} as (x,y) coordinates separated by commas:'
+                _cont = True
+                while _cont:
+                    coords = input('Enter cells to {} as (x,y) coordinates separated by commas'
+                                   'or type "cancel":'
                                    '\n>>> '.format(cmd))
 
-                    try:
-                        # Get list of coordinates as tuples, like [(1,3),(2,3), ...]
-                        valid_coords, invalid_coords = separate_valids(coords)
-                    except ValueError as e:
-                        # Coords were not entered in a valid format
-                        print('\n{} '.format(e), end='')
-
-                    else:
-                        # Entered coords are of integers and are in range
-                        # Print the valid coords
-                        msg_below = ''
-                        for tup in valid_coords:
-                            col, row = tup[0], tup[1]
-                            if cmd == 'live':
-                                if self.cell_at(row, col).is_alive():
-                                    msg_below += '\tCell at ({}, {}) was already ' \
-                                                'alive.\n'.format(col, row)
-                                else:
-                                    self.cell_at(row, col).live()
-                                    msg_below += '\tRevived cell at ({}, {}).\n'.format(col, row)
-                            else:
-                                if self.cell_at(row, col).is_dead():
-                                    msg_below += '\tCell at ({}, {}) was already ' \
-                                                'dead.\n'.format(col, row)
-                                else:
-                                    self.cell_at(row, col).die()
-                                    msg_below += '\tKilled cell at ({}, {}).\n'.format(col, row)
-                        if len(invalid_coords) != 0:
-                            # Print the invalid coords
-                            msg_below += '\n\tThe following coordinates were invalid:'
-                            for tup in invalid_coords:
+                    if coords.lower() != 'cancel':
+                        try:
+                            # Get list of coordinates as tuples, like [(1,3),(2,3), ...]
+                            valid_coords, invalid_coords = separate_valids(coords)
+                        except ValueError as e:
+                            # Coords were not entered in a valid format
+                            print('\n{} '.format(e), end='')
+                        else:
+                            # Entered coords are of integers and are in range
+                            # Print the valid coords
+                            msg_below = ''
+                            for tup in valid_coords:
                                 col, row = tup[0], tup[1]
-                                msg_below += '\n\t\t({}, {})'.format(col, row)
-                            msg_below += '\n'
+                                if cmd == 'live':
+                                    if self.is_alive(row, col):
+                                        msg_below += '\tCell at ({}, {}) was already ' \
+                                                    'alive.\n'.format(col, row)
+                                    else:
+                                        self.live(row, col)
+                                        msg_below += '\tRevived cell at ({}, {}).\n'.format(col, row)
+                                else:
+                                    if self.is_dead(row, col):
+                                        msg_below += '\tCell at ({}, {}) was already ' \
+                                                    'dead.\n'.format(col, row)
+                                    else:
+                                        self.die(row, col)
+                                        msg_below += '\tKilled cell at ({}, {}).\n'.format(col, row)
+                            if len(invalid_coords) != 0:
+                                # Print the invalid coords
+                                msg_below += '\n\tThe following coordinates were invalid:'
+                                for tup in invalid_coords:
+                                    col, row = tup[0], tup[1]
+                                    msg_below += '\n\t\t({}, {})'.format(col, row)
+                                msg_below += '\n'
 
-                        # Clear the terminal if applicable
-                        if flush:
-                            flush_terminal()
+                            # Clear the terminal if applicable
+                            if flush:
+                                flush_terminal()
 
-                        # Show the board
-                        self.render_board('[Board Editing Mode]', msg_below, True, True)
+                            # Show the board
+                            self.render_board('[Board Editing Mode]', msg_below, True, True)
 
-                        # Break from the loop
-                        cont_ = False
+                            # Break from the loop
+                            _cont = False
 
                 print()
             elif cmd == 'clear':
@@ -196,33 +194,55 @@ class Board:
 
         for row in range(self.height):
             for col in range(self.width):
-                self.cell_at(row, col).die()
+                self.die(row, col)
 
     @staticmethod
-    def format_board(state_list: List[str]):
-        """Return a 2D list of alive/dead Cells corresponding to 1s/0s in strings in state_list."""
+    def get_board_from_state(state_list: List[str]):
+        """Return a list of BitArrays from list of strings of 1s and 0s."""
 
-        # state_list must not be empty and all its elements must be
-        # strings of equal nonzero length containing "1"s where cells
-        # in the returned state should be alive (and zeros where
-        # they should be dead to follow convention).
-        assert len(state_list) > 0, '[ERROR] Board.format_board() called with invalid ' \
-                                    'with empty state_list argument'
-        assert all([len(i) == len(state_list[0]) for i in state_list]), \
-            '[ERROR] Board.format_board() called with state_list argument with elements ' \
-            'of differing lengths'
-        assert len(state_list[0]) > 0, '[ERROR] Board.format_board() called with strings ' \
-                                       'of length 0'
-
-        # Create the list of Cell objects
-        new_state = [[Cell(state_list[row][col] == '1', row, col)
-                      for col in range(len(state_list[0]))]
-                     for row in range(len(state_list))]
+        # Create the list
+        new_state = []
+        for row in range(len(state_list)):
+            # Will raise CreationError if row is empty or contains
+            # anything except 0s and 1s
+            new_state.append(BitArray('0b' + state_list[row]))
 
         return new_state
 
+    @staticmethod
+    def get_blank_board(height, width):
+        """Return a list of BitArrays initialized to 0."""
+
+        # Create the list
+        new_state = []
+        for row in range(height):
+            new_state.append(BitArray('0b' + '0'*width))
+
+        return new_state
+
+    def render_cell(self, row, col, dark, end=''):
+        """Print the current state of the cell."""
+
+        # Prints characters twice in a row so they appear as squares in the terminal
+        if self.is_alive(row, col):
+            print(Board.alive_char*2, end=end)
+        elif dark:
+            print(Board.dead_char_dark*2, end=end)
+        else:
+            print(Board.dead_char*2, end=end)
+
     def render_board(self, msg_side='', msg_below='', show_coords=False, checker=False):
-        """Render the current state of the board."""
+        """Render the current state of the board.
+
+        Arguments:
+            msg_side: String printed to the right of board at the top row.
+            msg_below: String printed below board (with end='').
+            show_coords: Bool indicating whether board should display
+                coordinates at left and bottom of board.
+            checker: Bool indicating whether board should be rendered
+                with a checkerboard background.
+
+        """
 
         # Extra left padding if showing coordinates
         if show_coords:
@@ -235,8 +255,8 @@ class Board:
         for row in range(self.height-1, -1, -1):
             # Print row coordinates if applicable
             if show_coords:
-                if row % 5 == 0:
-                    print('{} '.format(str(row).rjust(2)), end='')
+                if (row+1) % 5 == 0:
+                    print('{} '.format(str(row+1).rjust(2)), end='')
                 else:
                     print('   ', end='')
             else:
@@ -251,7 +271,7 @@ class Board:
                 dark = (row + col) % 2 == 1 and checker
 
                 # Print the state of the cell
-                self.cell_at(row, col).render_cell(dark, end='')
+                self.render_cell(row, col, dark)
 
             # Print right edge of the board
             print(' │', end='')
@@ -277,23 +297,24 @@ class Board:
                                  'when printing col coordinates')
 
             if self.width > 9:
-                # Print 2-digit coordinate numbers vertically
-
-                # First and second digits of numbers
+                # First and second digits of col coords should be printed vertically
                 top_line = ''
                 bottom_line = ''
-                for i in range(0, self.width, 5):
+                for i in range(5, self.width+1, 5):
                     top_line += '{0:<10}'.format(str(i).ljust(2)[0])
                     bottom_line += '{0:<10}'.format(str(i).ljust(2)[1])
-                print('     ' + top_line)
-                print('      ' + bottom_line)
-            else:
-                # Print padding
-                print('     ', end='')
 
-                # Print numbers normally (horizontally)
-                for i in range(0, self.width, 5):
-                    print('{0:<10}'.format(i), end='')
+                # Print the two lines with leading 0 coordinate
+                print(' 0           ' + top_line)
+                print('              ' + bottom_line)
+            else:
+                # Col numbers can be printed normally (horizontally)
+                top_line = ''
+                for i in range(5, self.width+1, 5):
+                    top_line += '{0:<10}'.format(str(i).ljust(2)[0])
+
+                # Print the line with leading 0 coordinate
+                print(' 0           ' + top_line)
 
             print()
         if msg_below != '':
@@ -329,39 +350,115 @@ class Board:
             print()
 
     def cell_at(self, row, col):
-        """Return Cell object at specified row and col."""
+        """Return state of the cell at given coordinates.
+
+        This is equivalent to is_alive(); included for semantic clarity.
+
+        """
 
         return self.state[row][col]
+
+    def next_state(self, row, col) -> bool:
+        """Return the correct state of given cell at the next game tick."""
+
+        # Set next state depending on number of living neighbors
+        neighbors = self.num_alive_neighbors(row, col)
+        if self.is_alive(row, col):
+            # Cell is alive
+            if neighbors < 2:
+                # Die by underpopulation
+                should_live = False
+            elif neighbors > 3:
+                # Die by overpopulation
+                should_live = False
+            else:
+                # Stay alive with 2 or 3 neighbors
+                should_live = True
+        else:
+            # Cell is dead
+            if neighbors == 3:
+                # Live by reproduction
+                should_live = True
+            else:
+                # Stay dead
+                should_live = False
+
+        return should_live
+
+    def is_alive(self, row, col):
+        """Return true if cell at given coordinates is true."""
+
+        return self.state[row][col]
+
+    def is_dead(self, row, col):
+        """Return true if cell at given coordinates is false."""
+
+        return not self.state[row][col]
+
+    def live(self, row, col):
+        """Make the cell at the given coordinates alive."""
+
+        self.state[row][col] = True
+
+    def die(self, row, col):
+        """Make the cell at the given coordinates dead."""
+
+        self.state[row][col] = False
 
     def advance_all(self):
         """Advance every cell on the board by one game tick."""
 
-        # Create a deep copy of the current Board object
-        new_board = copy.deepcopy(self)
+        # Create lists of cells to change after all cells are evaluated
+        # If cells were changed immediately, number of neighbors would be
+        # measured inaccurately
+        should_live = []
+        should_die = []
 
         # Update states in the new board where applicable
-        for row in range(self.height-1, -1, -1):
+        for row in range(self.height):
             for col in range(self.width):
-                # The cell object at the current board position
-                cell = self.cell_at(row, col)
-
-                # Update the state of the cell in the new board
-                if cell.should_live():
-                    new_board.cell_at(row, col).live()
+                # Update the state of the cell at these coordinates
+                if self.next_state(row, col):
+                    should_live.append((row, col))
                 else:
-                    new_board.cell_at(row, col).die()
+                    should_die.append((row, col))
 
-        self.state = copy.deepcopy(new_board.state)
+        # Update the cells
+        for coord in should_live:
+            self.live(coord[0], coord[1])
 
-        # Get rid of the temporary board
-        del new_board
+        for coord in should_die:
+            self.die(coord[0], coord[1])
 
-    def row_in_range(self, row: int) -> bool:
+    def num_alive_neighbors(self, row, col) -> int:
+        """Return number of alive cells adjacent to cell on given board at given coordinates."""
+
+        # Assumes state has width and length
+        state_height = len(self.state)
+        state_width = len(self.state[0])
+
+        # Sum the neighboring cells, top-to-bottom and left-to-right
+        num_neighbors = 0
+        for try_row in [-1, +0, +1]:
+            for try_col in [-1, +0, +1]:
+                # Skip the cell itself, (+0, +0)
+                if not try_row == try_col == 0:
+                    # Add the neighboring cell to the total (False is 0, True is 1)
+                    # NOTE: (self.row+try_row) % self.parent_board.height == 0.
+                    # creates a toroidal wrapping effect.
+                    num_neighbors += self.cell_at(
+                        (row + try_row) % state_height,
+                        (col + try_col) % state_width
+                    )
+
+        return num_neighbors
+
+    def row_in_range(self, row) -> bool:
         """Return true if row is in range of the board height."""
 
         return 0 <= row < self.height
 
-    def col_in_range(self, col: int) -> bool:
+    def col_in_range(self, col) -> bool:
         """Return true if col is in range of the board width."""
 
         return 0 <= col < self.width
@@ -377,131 +474,6 @@ class Board:
         return all(isinstance(num, int) for num in coord) \
             and self.row_in_range(coord[0]) \
             and self.col_in_range(coord[1])
-
-
-class Cell:
-
-    # Characters used to print alive and dead cell states
-    alive_char = '█'
-    dead_char = '░'
-    dead_char_dark = '▒'
-
-    def __init__(self, state: bool, row, col, parent_board: Board = None, neighbors=None):
-        """Create a cell object."""
-
-        self.state = state
-        self.row = row
-        self.col = col
-        self.parent_board = parent_board
-        self.neighbors = neighbors
-
-    def __str__(self):
-        s = object.__str__(self.parent_board)
-        s += '\nParent parent_board: <__main__.Board object at {}>'.format(hex(id(self.parent_board)))
-        s += '\nPosition: ({}, {})'.format(self.col, self.row)
-        s += '\nState: {}'.format(['DEAD', 'ALIVE'][self.state])
-        try:
-            # Print neighbors if it exists yet
-            s += '\nNeighbors: {{{}}}'.format('\n\t'.join([Cell.__str__(n) for n in self.neighbors]))
-        except NameError:
-            pass
-
-        return s
-
-    def render_cell(self, dark=False, end=''):
-        """Print character showing aliveness of the given cell.
-
-        Optional arg dark returns darker character for dead cells.
-
-        """
-
-        if self.is_alive():
-            print(Cell.alive_char*2, end=end)
-        elif dark:
-            print(Cell.dead_char_dark*2, end=end)
-        else:
-            print(Cell.dead_char*2, end=end)
-
-    def is_alive(self) -> bool:
-        """Return True if cell is alive."""
-
-        return self.state
-
-    def is_dead(self) -> bool:
-        """Return True if cell is dead."""
-
-        return not self.state
-
-    @staticmethod
-    def num_alive(cells):
-        """Return number of alive cell objects in given iterable."""
-
-        total = 0
-        for cell in cells:
-            total += cell.is_alive()
-
-        return total
-
-    def live(self):
-        """Make the given cell alive."""
-
-        self.state = True
-
-    def die(self):
-        """Make the given cell dead."""
-
-        self.state = False
-
-    def set_neighbors(self):
-        """Create the list of cells adjacent to self in any direction."""
-
-        # State and values in state must have length
-        assert self.parent_board.width > 0
-        assert self.parent_board.height > 0
-
-        # Row and col are in bounds
-        assert self.parent_board.row_in_range(self.row)
-        assert self.parent_board.col_in_range(self.col)
-
-        # Create the list of neighboring cell objects, top-to-bottom and left-to-right
-        neighbors = []
-        for try_row in [-1, +0, +1]:
-            for try_col in [-1, +0, +1]:
-                # Skip the cell itself, (+0, +0)
-                if not try_row == try_col == 0:
-                    # Add the neighboring cell
-                    # NOTE: When self.row + try_row == self.parent_board.height,
-                    # (self.row+try_row) % self.parent_board.height == 0.
-                    # This creates the toroidal parent_board wrapping effect.
-                    neighbors += [self.parent_board.cell_at((self.row + try_row) % self.parent_board.height,
-                                                            (self.col+try_col) % self.parent_board.height)]
-
-        self.neighbors = neighbors
-
-    def should_live(self) -> bool:
-        """Determine and return the correct state of self at the next game tick."""
-
-        num_alive_neighbors = self.num_alive(self.neighbors)
-
-        # Assume state doesn't change...
-        new_state = self.state
-
-        # ...then check to see if it should
-        if self.is_alive():
-            # Cell is alive
-            if num_alive_neighbors < 2:
-                # Die by underpopulation
-                new_state = False
-            elif num_alive_neighbors > 3:
-                # Die by overpopulation
-                new_state = False
-        else:
-            # Cell is dead
-            if num_alive_neighbors == 3:
-                # Live by reproduction
-                new_state = True
-
-        return new_state
 
 
 def game_loop(board: Board, flush=False):
@@ -646,7 +618,7 @@ def prompt_for_board_size() -> (int, int):
 def welcome():
     """Show Game of Life welcome message and animation."""
 
-    # 1s will be living cells, 0s dead cells
+    # Spells 'GAME OF LIFE'
     welcome_art = [
         '0000000000000000000000000000000000000000000000000000000000000000000000',
         '0000000000000000000000000000000000000000000000000000000000000000000000',
@@ -659,16 +631,15 @@ def welcome():
         '0000000000000000000000000000000000000000000000000000000000000000000000'
     ][::-1]
 
-    # Create the board the state from welcome_art
-    welcome_board = Board(0, len(welcome_art), len(welcome_art[0]))
-    for row in range(len(welcome_art)-1, -1, -1):
-        for col in range(len(welcome_art[0])):
-            if welcome_art[row][col] == 'O':
-                welcome_board.cell_at(row, col).live()
+    # Convert welcome_art to a list of BitArray objects
+    welcome_state = Board.get_board_from_state(welcome_art)
 
-    # Clear terminal before printing board
+    time.sleep(0.5)
+    print('Welcome to the Game of Life! Let\'s set up your board.\n')
+
+    # Show and animate the board
+    welcome_board = Board(0, len(welcome_state), len(welcome_state[0]), welcome_state)
     flush_terminal()
-
     welcome_board.render_board()
     time.sleep(2)
     welcome_board.tick_board(110, True, 50, False)
@@ -691,7 +662,7 @@ def main():
 
         time.sleep(1)
 
-        # User can set up the board
+        # Prompt user to set up the board
         flush_terminal()
         board.set_board_states(True, 'Board created!\n')
 
