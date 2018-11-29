@@ -89,14 +89,18 @@ class Board:
             # Create sets that hold valid and invalid tuples
             valid_tuples = []
             invalid_tuples = []
-            for j in all_tuples:
-                # Adds tuples only if not duplicates
-                if self.coord_in_range(j):
-                    if j not in valid_tuples:
-                        valid_tuples.append(j)
+            for t in all_tuples:
+                # User-entered coords are 1-indexed, must convert
+                # to 0-indexed tuples
+                t = (t[0]-1, t[1]-1)
+
+                # Adds tuple only if not duplicates
+                if self.coord_in_range(t):
+                    if t not in valid_tuples:
+                        valid_tuples.append(t)
                 else:
-                    if j not in invalid_tuples:
-                        invalid_tuples.append(j)
+                    if t not in invalid_tuples:
+                        invalid_tuples.append(t)
 
             return valid_tuples, invalid_tuples
 
@@ -119,11 +123,13 @@ class Board:
 
                 _cont = True
                 while _cont:
-                    coords = input('Enter cells to {} as (x,y) coordinates separated by commas'
+                    coords = input('Enter cells to {} as (x,y) coordinates separated by commas '
                                    'or type "cancel":'
                                    '\n>>> '.format(cmd))
 
-                    if coords.lower() != 'cancel':
+                    if coords.lower() == 'cancel':
+                        _cont = False
+                    else:
                         try:
                             # Get list of coordinates as tuples, like [(1,3),(2,3), ...]
                             valid_coords, invalid_coords = separate_valids(coords)
@@ -139,23 +145,26 @@ class Board:
                                 if cmd == 'live':
                                     if self.is_alive(row, col):
                                         msg_below += '\tCell at ({}, {}) was already ' \
-                                                    'alive.\n'.format(col, row)
+                                                     'alive.\n'.format(col+1, row+1)
                                     else:
                                         self.live(row, col)
-                                        msg_below += '\tRevived cell at ({}, {}).\n'.format(col, row)
+                                        msg_below += '\tRevived cell at ({}, {}).\n' \
+                                                     ''.format(col+1, row+1)
                                 else:
                                     if self.is_dead(row, col):
                                         msg_below += '\tCell at ({}, {}) was already ' \
-                                                    'dead.\n'.format(col, row)
+                                                     'dead.\n'.format(col+1, row+1)
                                     else:
                                         self.die(row, col)
-                                        msg_below += '\tKilled cell at ({}, {}).\n'.format(col, row)
+                                        msg_below += '\tKilled cell at ({}, {}).\n' \
+                                                     ''.format(col+1, row+1)
+
+                            # Print the invalid coords if there are any
                             if len(invalid_coords) != 0:
-                                # Print the invalid coords
                                 msg_below += '\n\tThe following coordinates were invalid:'
                                 for tup in invalid_coords:
                                     col, row = tup[0], tup[1]
-                                    msg_below += '\n\t\t({}, {})'.format(col, row)
+                                    msg_below += '\n\t\t({}, {})'.format(col+1, row+1)
                                 msg_below += '\n'
 
                             # Clear the terminal if applicable
@@ -339,7 +348,7 @@ class Board:
             msg = ''
             if show_ticks:
                 msg = 'Tick: {}'.format(self.tick)
-            self.render_board(msg)
+            self.render_board('[GAME OF LIFE]  ' + msg)
 
             # Wait
             time.sleep(delay)
@@ -518,20 +527,23 @@ def game_loop(board: Board, flush=False):
             refresh_board = True
         elif prompt == 'tick':
             # Tick the board given number of times
-            num_ticks = input('Enter number of ticks:\n>>> ')
+            num_ticks = input('\nEnter number of ticks:\n>>> ')
 
             # Validate number of ticks
             while not num_ticks.isdigit():
                 num_ticks = input('Invalid number. Enter number of ticks:\n>>> ')
             num_ticks = int(num_ticks)
 
-            sleep_time = input('Enter milliseconds to pause between each tick (default 100):\n>>> ')
+            sleep_time = input('\nEnter milliseconds to pause between each tick (default 100):\n'
+                               '>>> ')
 
-            while not sleep_time.isdigit():
-                sleep_time = input('Invalid number. Enter milliseconds to pause between each tick '
-                                   '(default 100):\n>>> ')
-
-            sleep_time = int(sleep_time)
+            if sleep_time == '':
+                sleep_time = 100
+            else:
+                while not sleep_time.isdigit():
+                    sleep_time = input('Invalid number. Enter milliseconds to pause '
+                                       'between each tick (default 100):\n>>> ')
+                sleep_time = int(sleep_time)
 
             # Tick the board
             board.tick_board(num_ticks, True, sleep_time, True)
