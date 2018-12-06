@@ -5,7 +5,6 @@ import random
 import copy
 from typing import List
 from bitstring import BitArray, CreationError
-# import pygame
 
 
 class Board:
@@ -45,15 +44,103 @@ class Board:
 
         return s
 
-    def set_board_states(self, flush=False, msg=''):
-        """Prompt user to set alive cells in parent_board."""
+    def set_board_states(self, flush=True, msg=''):
+        """Prompt user to set alive cells in the board."""
 
-        commands = {'live': 'turn on cells in the parent_board',
-                    'die': 'turn off cells in the parent_board',
+        commands = {'live': 'turn on cells in the board',
+                    'die': 'turn off cells in the board',
+                    'presets': 'show a list of preset patterns',
                     'randomize': 'randomize the cells in the board from a given density',
-                    'clear': 'clear the parent_board',
-                    'done': 'exit parent_board setup mode',
+                    'clear': 'clear the board',
+                    'cls': 're-render the board, removing command interactions',
+                    'done': 'exit board setup mode',
                     'help': 'list available commands'}
+
+        # Credit for preset patterns:
+        # http://www.radicaleye.com/lifepage/#browse
+        # and
+        # https://bitstorm.org/gameoflife/
+        presets = {
+            'c/2 glider':
+                {
+                    'size': (3, 3),
+                    'pattern': (
+                        (1, 3), (2, 3), (3, 3), (3, 2), (2, 1)
+                    )
+                },
+            'c/5 glider':
+                {
+                    'size': (26, 7),
+                    'pattern': (
+                        (12, 2), (20, 2), (6, 3), (7, 3), (9, 3), (11, 3),
+                        (13, 3), (14, 3), (18, 3), (19, 3), (21, 3), (23, 3),
+                        (25, 3), (26, 3), (3, 4), (4, 4), (5, 4), (7, 4), (9, 4),
+                        (10, 4), (11, 4), (21, 4), (22, 4), (23, 4), (25, 4),
+                        (27, 4), (28, 4), (29, 4), (3, 5), (7, 5), (9, 5),
+                        (15, 5), (17, 5), (23, 5), (25, 5), (29, 5), (7, 6),
+                        (8, 6), (15, 6), (17, 6), (24, 6), (25, 6), (4, 7),
+                        (5, 7), (15, 7), (17, 7), (27, 7), (28, 7), (4, 8),
+                        (5, 8), (7, 8), (8, 8), (24, 8), (25, 8), (27, 8),
+                        (28, 8), (8, 9), (24, 9)
+                    )
+                },
+            'c/3 puffer':
+                {
+                    'size': (47, 16),
+                    'pattern': (
+                        (25, 2), (29, 2), (42, 2), (24, 3), (26, 3), (28, 3), (30, 3),
+                        (32, 3), (33, 3), (34, 3), (36, 3), (37, 3), (39, 3), (40, 3),
+                        (41, 3), (42, 3), (44, 3), (45, 3), (46, 3), (48, 3), (49, 3),
+                        (12, 4), (13, 4), (14, 4), (17, 4), (19, 4), (20, 4), (21, 4),
+                        (23, 4), (28, 4), (30, 4), (36, 4), (37, 4), (39, 4), (40, 4),
+                        (43, 4), (48, 4), (49, 4), (11, 5), (16, 5), (17, 5), (19, 5),
+                        (20, 5), (26, 5), (28, 5), (29, 5), (32, 5), (34, 5), (36, 5),
+                        (44, 5), (45, 5), (47, 5), (50, 5), (8, 6), (9, 6), (11, 6),
+                        (18, 6), (22, 6), (27, 6), (31, 6), (32, 6), (34, 6), (35, 6),
+                        (8, 7), (9, 7), (11, 7), (13, 7), (15, 7), (16, 7), (19, 7),
+                        (21, 7), (22, 7), (24, 7), (25, 7), (27, 7), (28, 7), (29, 7),
+                        (37, 7), (38, 7), (10, 8), (12, 8), (14, 8), (19, 8), (27, 8),
+                        (28, 8), (29, 8), (37, 8), (5, 9), (6, 9), (7, 9), (11, 9),
+                        (15, 9), (16, 9), (22, 9), (29, 9), (37, 9), (4, 10), (5, 10),
+                        (6, 10), (7, 10), (11, 10), (22, 10), (3, 11), (7, 11), (8, 11),
+                        (15, 11), (8, 12), (11, 12), (12, 12), (14, 12), (15, 12),
+                        (17, 12), (18, 12), (3, 13), (5, 13), (8, 13), (11, 13),
+                        (12, 13), (14, 13), (15, 13), (16, 13), (17, 13), (19, 13),
+                        (21, 13), (22, 13), (23, 13), (25, 13), (26, 13), (28, 13),
+                        (16, 14), (17, 14), (19, 14), (25, 14), (26, 14), (28, 14),
+                        (29, 14), (12, 15), (21, 15), (23, 15), (25, 15), (27, 15),
+                        (30, 15), (12, 16), (20, 16), (21, 16), (23, 16), (29, 16),
+                        (20, 17), (21, 18)
+                    )
+                },
+            'exploder':
+                {
+                    'size': (5, 5),
+                    'pattern': (
+                        (1, 1), (3, 1), (5, 1), (1, 2), (5, 2), (1, 3), (5, 3), (1, 4),
+                        (5, 4), (1, 5), (3, 5), (5, 5)
+                    )
+                },
+            'small exploder':
+                {
+                    'size': (3, 4),
+                    'pattern': (
+                        (1, 2), (2, 1), (2, 3), (3, 1), (3, 2), (3, 3), (4, 2)
+                    )
+                },
+            'glider gun':
+                {
+                    'size': (35, 8),
+                    'pattern': (
+                        (25, 1), (23, 2), (25, 2), (13, 3), (14, 3), (21, 3), (22, 3),
+                        (35, 3), (36, 3), (12, 4), (16, 4), (21, 4), (22, 4), (35, 4),
+                        (36, 4), (1, 5), (2, 5), (11, 5), (17, 5), (21, 5), (22, 5),
+                        (1, 6), (2, 6), (11, 6), (15, 6), (17, 6), (18, 6), (23, 6),
+                        (25, 6), (11, 7), (17, 7), (25, 7), (12, 8), (16, 8), (13, 9),
+                        (14, 9)
+                    )
+                }
+        }
 
         def valid_cell_format(s):
             """Determine if string follows the format "(a, b), (c, d), ... ".
@@ -94,30 +181,34 @@ class Board:
             for t in all_tuples:
                 # User-entered coords are 1-indexed, must convert
                 # to 0-indexed tuples
-                t = (t[0]-1, t[1]-1)
 
-                # Adds tuple only if not duplicates
-                if self.coord_in_range(t):
-                    if t not in valid_tuples:
-                        valid_tuples.append(t)
+                if isinstance(t[0], int) and isinstance(t[1], int):
+                    t = (t[0]-1, t[1]-1)
+
+                    # Adds tuple only if not duplicates
+                    if self.coord_in_range(t):
+                        if t not in valid_tuples:
+                            valid_tuples.append(t)
+                    else:
+                        if t not in invalid_tuples:
+                            invalid_tuples.append(t)
                 else:
-                    if t not in invalid_tuples:
-                        invalid_tuples.append(t)
+                    invalid_tuples.append(t)
 
             return valid_tuples, invalid_tuples
 
-        # Show the parent_board
-        self.render_board('[Board Editing Mode]', '', True, True)
+        # Show the board
+        self.render_board('[BOARD EDITING MODE]', '', True, True)
 
         # Show message if it exists
         if msg != '':
             print(msg)
 
-        # Edit the parent_board while the user wants to
+        # Edit the board while the user wants to
         cont = True
         while cont:
             # Get user command
-            cmd = input('Enter a command or type help for more info:\n>>> ').lower()
+            cmd = input('Enter a command or type \"help\" for more info:\n>>> ').lower()
 
             # Execute commands
             if cmd in ['live', 'die']:
@@ -130,6 +221,7 @@ class Board:
                                    '\n>>> '.format(cmd))
 
                     if coords.lower() == 'cancel':
+                        print()
                         _cont = False
                     else:
                         try:
@@ -137,36 +229,19 @@ class Board:
                             valid_coords, invalid_coords = separate_valids(coords)
                         except ValueError as e:
                             # Coords were not entered in a valid format
+                            # Print the error message raised in separate_valids()
                             print('\n{} '.format(e), end='')
                         else:
                             # Entered coords are of integers and are in range
-                            # Print the valid coords
-                            msg_below = ''
-                            for tup in valid_coords:
-                                col, row = tup[0], tup[1]
-                                if cmd == 'live':
-                                    if self.is_alive(row, col):
-                                        msg_below += '\tCell at ({}, {}) was already ' \
-                                                     'alive.\n'.format(col+1, row+1)
-                                    else:
-                                        self.live(row, col)
-                                        msg_below += '\tRevived cell at ({}, {}).\n' \
-                                                     ''.format(col+1, row+1)
-                                else:
-                                    if self.is_dead(row, col):
-                                        msg_below += '\tCell at ({}, {}) was already ' \
-                                                     'dead.\n'.format(col+1, row+1)
-                                    else:
-                                        self.die(row, col)
-                                        msg_below += '\tKilled cell at ({}, {}).\n' \
-                                                     ''.format(col+1, row+1)
+                            # Update board and print the valid coords
+                            msg_below = self.set_board_states_from_coords(valid_coords, cmd)
 
                             # Print the invalid coords if there are any
                             if len(invalid_coords) != 0:
                                 msg_below += '\n\tThe following coordinates were invalid:'
                                 for tup in invalid_coords:
                                     col, row = tup[0], tup[1]
-                                    msg_below += '\n\t\t({}, {})'.format(col+1, row+1)
+                                    msg_below += '\n\t\t({}, {})'.format(col, row)
                                 msg_below += '\n'
 
                             # Clear the terminal if applicable
@@ -174,12 +249,122 @@ class Board:
                                 flush_terminal()
 
                             # Show the board
-                            self.render_board('[Board Editing Mode]', msg_below, True, True)
+                            self.render_board('[BOARD EDITING MODE]', msg_below, True, True)
 
                             # Break from the loop
                             _cont = False
 
                 print()
+            elif cmd == 'presets':
+                print()
+
+                # Print the names of available presets
+                print('\n\tPresets:')
+                for preset in presets:
+                    print('\n\t\t' + preset, end='')
+                    print('\n\t\t\tWidth required: {} cells'.format(presets[preset]['size'][0]),
+                          end='')
+                    # Warn user if width too small (must be >= because of toroidal board)
+                    if presets[preset]['size'][0] >= self.width:
+                        print(' (board too small)', end='')
+                    print('\n\t\t\tHeight required: {} cells'.format(presets[preset]['size'][1]),
+                          end='')
+                    # Warn user if height too small (must be >= because of toroidal board)
+                    if presets[preset]['size'][1] >= self.height:
+                        print(' (board too small)', end='')
+                print()
+
+                # Loop while user enters invalid presets
+                _cont = True
+                while _cont:
+                    preset = input('Enter a preset name from list above or type "cancel":'
+                                   '\n>>> ').lower()
+
+                    if preset == 'cancel':
+                        _cont = False
+                    else:
+                        # Validate input
+                        if preset not in presets:
+                            # Input not a preset
+                            print('Invalid entry. ', end='')
+                        else:
+                            if not self.coord_in_range(presets[preset]['size']):
+                                # Size of the preset is out of range of the board
+                                print('That preset can\'t fit in your board. ', end='')
+                            else:
+                                print()
+
+                                # Loop while user enters invalid starting square
+                                # (where to place the preset)
+                                __cont = True
+                                while __cont:
+                                    # Is a valid preset. Get coordinate to place it
+                                    start_square = input('Enter bottom-left coordinate of the '
+                                                         '{}x{} region you want to put the preset '
+                                                         'or type "cancel":\n>>> '
+                                                         ''.format(presets[preset]['size'][0],
+                                                                   presets[preset]['size'][1]))
+
+                                    if start_square.lower() == 'cancel':
+                                        print()
+                                        __cont = False
+                                    else:
+                                        # Validate input
+                                        try:
+                                            # Get coordinates as a list of tuples,
+                                            # like [(1,3),(2,3), ...]
+                                            valid_coords, invalid_coords = \
+                                                separate_valids(start_square)
+                                        except ValueError as e:
+                                            # Coords were not entered in a valid format
+                                            # Print the error message raised in
+                                            # separate_valids()
+                                            print('\n{} '.format(e), end='')
+                                        else:
+                                            if len(valid_coords) + len(invalid_coords) > 1:
+                                                # User entered more than 1 cell
+                                                print('Please only enter one coordinate. ',
+                                                      end='')
+                                            elif len(invalid_coords) == 1:
+                                                if not isinstance(invalid_coords[0][0], int) \
+                                                        and isinstance(invalid_coords[0][1], int):
+                                                    # Cell is valid format, but out of range
+                                                    print('\n\tYour coordinate "{}" was out of '
+                                                          'range.'.format(start_square))
+                                                else:
+                                                    # Entered cell is not in valid format
+                                                    print('\n\tYour coordinate "{}" was invalid. '
+                                                          ''.format(start_square))
+                                            elif not self.coord_in_range((valid_coords[0][0],
+                                                                         valid_coords[0][1])):
+                                                # Entered cell is a valid format,
+                                                # but not on the board
+                                                # (elif above makes 1-indexed user entry 0-indexed)
+                                                print('\n\tThe cell {} is out of range.'
+                                                      ''.format(start_square))
+                                            else:
+                                                # Change cell from 1-indexed to 0-indexed
+                                                start_square = (valid_coords[0][0]-1,
+                                                                valid_coords[0][1]-1)
+
+                                                # Entered cell is in a valid format
+                                                # and on the board.
+                                                # Clear board and update it with the preset
+                                                msg_below = self.set_board_states_from_coords(
+                                                    presets[preset]['pattern'], 'live', True,
+                                                    start_square) + '\n'
+
+                                                # Clear the terminal if applicable
+                                                if flush:
+                                                    flush_terminal()
+
+                                                # Show the board
+                                                self.render_board('[BOARD EDITING MODE]', msg_below,
+                                                                  True, True)
+
+                                                # Break from the loop
+                                                __cont = False
+                                                _cont = False
             elif cmd == 'randomize':
                 print()
 
@@ -201,13 +386,15 @@ class Board:
                             _cont = False
 
                 # Randomize the board
-                time.sleep(1)
                 print('\nRandomizing board...')
                 self.state = Board.get_random_board(self.height, self.width, density)
                 time.sleep(1)
 
-                self.render_board('[Board Editing Mode]',
-                                  'Board randomized with density {}.'.format(density), True, True)
+                if flush:
+                    flush_terminal()
+
+                self.render_board('[BOARD EDITING MODE]  Board randomized with density {}%. '
+                                  ''.format(density), '', True, True)
 
             elif cmd == 'clear':
                 self.clear_board()
@@ -217,7 +404,13 @@ class Board:
                     flush_terminal()
 
                 # Show the board
-                self.render_board('[Board Editing Mode]', 'Board cleared.\n\n', True, True)
+                self.render_board('[BOARD EDITING MODE]  Board cleared.', '', True, True)
+            elif cmd == 'cls':
+                if flush:
+                    flush_terminal()
+
+                # Re-render the same state of the board
+                self.render_board('[BOARD EDITING MODE]  Terminal cleared.', '', True, True)
             elif cmd == 'done':
                 cont = False
                 print()
@@ -228,6 +421,38 @@ class Board:
                 print()
             else:
                 print('\nInvalid command. ', end='')
+
+    def set_board_states_from_coords(self, cell_list, cmd, clear=False, start_square=(0, 0)):
+        """Make the cells in cell_list alive or dead, depending on cmd, return success message."""
+
+        msg_below = ''
+
+        # Clear the board when using a preset
+        if clear:
+            self.clear_board()
+
+        # Update the board with all the tuples
+        for tup in cell_list:
+            col, row = (tup[0] + start_square[0]) % self.width, \
+                       (tup[1] + start_square[1]) % self.height
+            if cmd == 'live':
+                if self.is_alive(row, col):
+                    msg_below += '\tCell at ({}, {}) was already ' \
+                                 'alive.\n'.format(col + 1, row + 1)
+                else:
+                    self.live(row, col)
+                    msg_below += '\tRevived cell at ({}, {}).\n' \
+                                 ''.format(col + 1, row + 1)
+            else:
+                if self.is_dead(row, col):
+                    msg_below += '\tCell at ({}, {}) was already ' \
+                                 'dead.\n'.format(col + 1, row + 1)
+                else:
+                    self.die(row, col)
+                    msg_below += '\tKilled cell at ({}, {}).\n' \
+                                 ''.format(col + 1, row + 1)
+
+        return msg_below
 
     def clear_board(self):
         """Kill all cell objects in self."""
@@ -414,7 +639,7 @@ class Board:
             time.sleep(delay)
 
         if show_ticks:
-            print('Advanced the board by {} ticks.\n'.format(num_ticks))
+            print('\tAdvanced the board by {} ticks.\n'.format(num_ticks))
         else:
             print()
 
@@ -516,9 +741,8 @@ class Board:
             for try_col in [-1, +0, +1]:
                 # Skip the cell itself, (+0, +0)
                 if not try_row == try_col == 0:
-                    # Add the neighboring cell to the total (False is 0, True is 1)
-                    # NOTE: (self.row+try_row) % self.parent_board.height == 0.
-                    # creates a toroidal wrapping effect.
+                    # Add the neighboring cell to the total (False is 0, True is 1).
+                    # The modulo creates a toroidal wrapping effect.
                     num_neighbors += self.cell_at(
                         (row + try_row) % state_height,
                         (col + try_col) % state_width
@@ -555,11 +779,17 @@ def game_loop(board: Board, flush=True):
     commands = {'': 'update board to the next tick',
                 'tick': 'update the board by some number of ticks',
                 'edit': 'edit current state of the board',
-                'end': 'quit the program',
+                'resize': 'resize the board and start from scratch',
+                'end': 'end the program',
                 'help': 'list available commands'}
 
-    cont = True
+    # Will determine if program starts new game once returning from game_loop()
+    new_game = False
+    # Re-renders board each loop if true
     refresh_board = True
+
+    # Tick board or execute commands while user says so
+    cont = True
     while cont:
         if refresh_board:
             # Clear the terminal if applicable
@@ -569,12 +799,12 @@ def game_loop(board: Board, flush=True):
             # Render the board and wait
             board.render_board('[GAME OF LIFE]  Tick: {}'.format(board.tick))
 
-        prompt = input('\nPress enter to tick the board or type help for more info:\n'
+        prompt = input('\nPress enter to tick the board or type \"help\" for more info:\n'
                        '>>> ').lower().strip()
 
-        # Validate command
+        # Validate prompt
         while prompt not in commands:
-            prompt = input('\nUnknown command. Press enter to continue or type help for '
+            prompt = input('\nUnknown command. Press enter to continue or type \"help\" for '
                            'more info:\n>>> ').lower().strip()
 
         # Execute command
@@ -594,32 +824,38 @@ def game_loop(board: Board, flush=True):
             refresh_board = True
         elif prompt == 'tick':
             # Tick the board given number of times
-            num_ticks = input('\nEnter number of ticks:\n>>> ')
+            num_ticks = input('\nEnter number of ticks or type "cancel":\n>>> ').lower()
 
-            # Validate number of ticks
-            while not num_ticks.isdigit():
-                num_ticks = input('Invalid number. Enter number of ticks:\n>>> ')
-            num_ticks = int(num_ticks)
+            if num_ticks != 'cancel':
+                # Validate number of ticks
+                while not num_ticks.isdigit():
+                    num_ticks = input('Invalid number. Enter number of ticks:\n>>> ')
+                num_ticks = int(num_ticks)
 
-            sleep_time = input('\nEnter milliseconds to pause between each tick (default 100):\n'
-                               '>>> ')
+                sleep_time = input('\nEnter milliseconds to pause between each tick '
+                                   '(default 0):\n>>> ')
 
-            if sleep_time == '':
-                sleep_time = 100
-            else:
-                while not sleep_time.isdigit():
-                    sleep_time = input('Invalid number. Enter milliseconds to pause '
-                                       'between each tick (default 100):\n>>> ')
-                sleep_time = int(sleep_time)
+                if sleep_time == '':
+                    sleep_time = 0
+                else:
+                    while not sleep_time.isdigit():
+                        sleep_time = input('Invalid number. Enter milliseconds to pause '
+                                           'between each tick (default 0):\n>>> ')
+                    sleep_time = int(sleep_time)
 
-            # Tick the board
-            board.tick_board(num_ticks, True, sleep_time, True)
+                # Tick the board
+                board.tick_board(num_ticks, True, sleep_time, True)
 
-            refresh_board = True
-        elif prompt == 'end':
+                refresh_board = True
+        elif prompt == 'resize':
+            print()
+
             # Break out of game loop
             cont = False
-            print()
+            new_game = True
+        elif prompt == 'end':
+            cont = False
+            new_game = False
         elif prompt == 'help':
             # Show available commands
             print('\tCommands:')
@@ -631,6 +867,8 @@ def game_loop(board: Board, flush=True):
             print()
 
             refresh_board = False
+
+    return new_game
 
 
 def try_int(s: str):
@@ -725,7 +963,7 @@ def welcome():
 
 
 def main():
-    welcome()
+    # welcome()
 
     cont = True
     while cont:
@@ -743,7 +981,7 @@ def main():
         board.set_board_states(True, 'Board created!\n')
 
         # Ticks until user enters 'end'
-        game_loop(board)
+        cont = game_loop(board)
 
 
 if __name__ == '__main__':
