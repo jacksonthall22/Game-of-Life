@@ -259,19 +259,21 @@ class Board:
                 print()
 
                 # Print the names of available presets
-                print('\n\tPresets:')
+                print('\tPresets:')
                 for preset in presets:
-                    print('\n\t\t' + preset, end='')
-                    print('\n\t\t\tWidth required: {} cells'.format(presets[preset]['size'][0]),
-                          end='')
+                    print('\t\t' + preset)
+                    print('\t\t\tWidth required: {} cells'.format(presets[preset]['size'][0]), end='')
                     # Warn user if width too small (must be >= because of toroidal board)
                     if presets[preset]['size'][0] >= self.width:
-                        print(' (board too small)', end='')
-                    print('\n\t\t\tHeight required: {} cells'.format(presets[preset]['size'][1]),
-                          end='')
+                        print(' (board too small)')
+                    else:
+                        print()
+                    print('\t\t\tHeight required: {} cells'.format(presets[preset]['size'][1]), end='')
                     # Warn user if height too small (must be >= because of toroidal board)
                     if presets[preset]['size'][1] >= self.height:
                         print(' (board too small)', end='')
+                    else:
+                        print()
                 print()
 
                 # Loop while user enters invalid presets
