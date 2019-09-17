@@ -60,7 +60,7 @@ class Board:
         # http://www.radicaleye.com/lifepage/#browse
         # and
         # https://bitstorm.org/gameoflife/
-        presets = {
+        PRESETS = {
             'c/2 glider':
                 {
                     'size': (3, 3),
@@ -260,17 +260,17 @@ class Board:
 
                 # Print the names of available presets
                 print('\tPresets:')
-                for preset in presets:
+                for preset in PRESETS:
                     print('\t\t' + preset)
-                    print('\t\t\tWidth required: {} cells'.format(presets[preset]['size'][0]), end='')
+                    print('\t\t\tWidth required: {} cells'.format(PRESETS[preset]['size'][0]), end='')
                     # Warn user if width too small (must be >= because of toroidal board)
-                    if presets[preset]['size'][0] >= self.width:
+                    if PRESETS[preset]['size'][0] >= self.width:
                         print(' (board too small)')
                     else:
                         print()
-                    print('\t\t\tHeight required: {} cells'.format(presets[preset]['size'][1]), end='')
+                    print('\t\t\tHeight required: {} cells'.format(PRESETS[preset]['size'][1]), end='')
                     # Warn user if height too small (must be >= because of toroidal board)
-                    if presets[preset]['size'][1] >= self.height:
+                    if PRESETS[preset]['size'][1] >= self.height:
                         print(' (board too small)', end='')
                     else:
                         print()
@@ -286,11 +286,11 @@ class Board:
                         _cont = False
                     else:
                         # Validate input
-                        if preset not in presets:
+                        if preset not in PRESETS:
                             # Input not a preset
                             print('Invalid entry. ', end='')
                         else:
-                            if not self.coord_in_range(presets[preset]['size']):
+                            if not self.coord_in_range(PRESETS[preset]['size']):
                                 # Size of the preset is out of range of the board
                                 print('That preset can\'t fit in your board. ', end='')
                             else:
@@ -304,8 +304,8 @@ class Board:
                                     start_square = input('Enter bottom-left coordinate of the '
                                                          '{}x{} region you want to put the preset '
                                                          'or type "cancel":\n>>> '
-                                                         ''.format(presets[preset]['size'][0],
-                                                                   presets[preset]['size'][1]))
+                                                         ''.format(PRESETS[preset]['size'][0],
+                                                                   PRESETS[preset]['size'][1]))
 
                                     if start_square.lower() == 'cancel':
                                         print()
@@ -353,7 +353,7 @@ class Board:
                                                 # and on the board.
                                                 # Clear board and update it with the preset
                                                 msg_below = self.set_board_states_from_coords(
-                                                    presets[preset]['pattern'], 'live', True,
+                                                    PRESETS[preset]['pattern'], 'live', True,
                                                     start_square) + '\n'
 
                                                 # Clear the terminal if applicable
